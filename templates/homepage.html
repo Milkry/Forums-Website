@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="../static/CSS/main.css">
+    <link rel="stylesheet" type="text/css"
+        href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Forums Homepage</title>
+</head>
+
+<body>
+    <!-- Blackbar -->
+    <div style="background-color: rgb(80, 80, 80); text-align: right;">
+        <form method="GET">
+            <button type="submit" formaction="/register" class="blackbarButtons">Register</button>
+            <button type="submit" formaction="/login" class="blackbarButtons">Login</button>
+        </form>
+    </div>
+
+    <!-- Logo -->
+    <div class="forumContainer">
+        <h1 style="vertical-align: middle;" class="forumTitle"><img style="vertical-align: middle;" width="300px"
+                height="300px" src="../static/Resources/Images/logo.png" />FORUMS</h1>
+    </div>
+
+    <!-- Topics -->
+    <div class="forums">
+        <label class="searchLabel">Search:</label>
+        <input class="searchField" type="text" placeholder="Search for..." id="search" />
+
+        <p>Forums topics will go here</p>
+    </div>
+</body>
+
+<style>
+    .blackbarButtons {
+        background-color: transparent;
+        color: white;
+        border: none;
+        cursor: pointer;
+        padding: 15px;
+        font-size: 16px;
+        opacity: 0.85;
+    }
+
+    .blackbarButtons:hover {
+        opacity: 1;
+    }
+
+    .forumContainer {
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+
+    .forumTitle {
+        margin: auto;
+        text-align: center;
+        font-size: 60px;
+    }
+</style>
+
+</html>

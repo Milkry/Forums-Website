@@ -1,0 +1,68 @@
+/*
+ * A global CSS file used by all pages
+ */
+
+body {
+    font-family: Helvetica, sans-serif;
+    background-color: #2E2A2E;
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    color: white;
+}
+
+p {
+    color: white;
+}
+
+/* For links */
+a {
+    color: dodgerblue;
+}
+
+hr {
+    border: 2px solid #929292;
+    border-radius: 50%;
+    margin-bottom: 20px;
+    margin-left: 25px;
+    margin-right: 25px;
+}
+
+input {
+    width: 99%;
+    padding: 15px 0 15px 10px;
+    margin: 5px 0 22px 0;
+    display: inline-block;
+    border: none;
+    background: #f1f1f1;
+}
+
+input:focus {
+    background-color: #ddd;
+    outline: none;
+}
+
+.forums {
+    background-color: #727272;
+    padding: 20px;
+    margin-top: 40px;
+    margin-left: 15%;
+    margin-right: 15%;
+}
+
+.searchField {
+    background-color: white;
+    vertical-align: middle;
+    border: none;
+    width: 15%;
+    margin: 5px;
+    padding: 5px;
+}
+
+.searchLabel {
+    color: white;
+    vertical-align: middle;
+    margin: 5px;
+}

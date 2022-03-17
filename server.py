@@ -1,4 +1,3 @@
-from tabnanny import check
 from flask import Flask, session, request, url_for, render_template
 import sqlite3
 

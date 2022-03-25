@@ -6,15 +6,53 @@
     <link rel="stylesheet" type="text/css" href="../static/CSS/main.css">
     <link rel="stylesheet" type="text/css"
         href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="../static/Scripts/homepage.js"></script>
     <title>Forums Homepage</title>
 </head>
 
 <body>
     <!-- Blackbar -->
-    <div style="background-color: rgb(80, 80, 80); text-align: right;">
-        <form method="GET">
-            <button type="submit" formaction="/register" class="blackbarButtons">Register</button>
-            <button type="submit" formaction="/login" class="blackbarButtons">Login</button>
+    <div class="blackbarContainer">
+        <button onclick="OverlayOn('overlayRegister')" class="blackbarButtons">Register</button>
+        <button onclick="OverlayOn('overlayLogin')" class="blackbarButtons">Login</button>
+    </div>
+
+    <!-- Register Form -->
+    <div id="overlayRegister" class="overlay">
+        <form action="/register/account" method="POST">
+            <div class="accountContainer">
+                <h1 style="display: inline-block;">Register</h1>
+                <button class="exitOverlayButton" onclick="OverlayOff('overlayRegister')"><i class="fa fa-times fa-2x"
+                        aria-hidden="true"></i></button>
+                <hr>
+                <input type="text" placeholder="Username" name="username" id="username" minlength="3" maxlength="25"
+                    required>
+                <input type="password" placeholder="Password" name="password" id="password" minlength="4" required>
+                <input type="password" placeholder="Confirm password" name="confirmPassword" id="confirmPassword"
+                    minlength="4" required>
+                <hr>
+                <div style="margin-bottom: 20px;">
+                    <input type="checkbox" required></input>
+                    <label>By creating an account you agree to our <a href="#">Terms & Privacy</a>.</label>
+                </div>
+                <button type="submit" class="proceedButton">Create an account</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Login Form -->
+    <div id="overlayLogin" class="overlay">
+        <form method="POST">
+            <div class="accountContainer">
+                <h1 style="display: inline-block;">Login</h1>
+                <button class="exitOverlayButton" onclick="OverlayOff('overlayLogin')"><i class="fa fa-times fa-2x"
+                        aria-hidden="true"></i></button>
+                <hr>
+                <input type="text" placeholder="Username" id="username" required>
+                <input type="password" placeholder="Password" id="password" required>
+                <hr>
+                <button type="submit" class="proceedButton">Login</button>
+            </div>
         </form>
     </div>
 
@@ -27,16 +65,20 @@
     <!-- Topics -->
     <div class="forums">
         <label class="searchLabel">Search:</label>
-        <input class="searchField" type="text" placeholder="Search for..." id="search" />
-
+        <input class="searchField" type="search" placeholder="Search for..." id="search" />
         <p>Forums topics will go here</p>
     </div>
 </body>
 
 <style>
+    .blackbarContainer {
+        background-color: rgb(80, 80, 80);
+        text-align: right;
+    }
+
     .blackbarButtons {
-        background-color: transparent;
         color: white;
+        background-color: transparent;
         border: none;
         cursor: pointer;
         padding: 15px;
@@ -57,6 +99,33 @@
         margin: auto;
         text-align: center;
         font-size: 60px;
+    }
+
+    .accountContainer {
+        background-color: rgb(36, 36, 36);
+        border: 2px solid whitesmoke;
+        margin: 20px;
+        float: right;
+        height: 100%;
+        padding: 30px;
+        width: 25%;
+    }
+
+    .proceedButton {
+        background-color: purple;
+        color: white;
+        width: 100%;
+        padding: 20px;
+        opacity: 0.85;
+        cursor: pointer;
+    }
+
+    .proceedButton:hover {
+        opacity: 1;
+    }
+
+    label {
+        color: white;
     }
 </style>
 

@@ -1,0 +1,19 @@
+DROP TABLE IF EXISTS user;
+
+DROP TABLE IF EXISTS topic;
+
+DROP TABLE IF EXISTS claim;
+
+DROP TABLE IF EXISTS claimToClaimType;
+
+DROP TABLE IF EXISTS claimToClaim;
+
+DROP TABLE IF EXISTS replyText;
+
+DROP TABLE IF EXISTS replyToClaimType;
+
+DROP TABLE IF EXISTS replyToClaim;
+
+DROP TABLE IF EXISTS replyToReplyType;
+
+DROP TABLE IF EXISTS replyToReply;

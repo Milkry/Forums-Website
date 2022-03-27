@@ -13,18 +13,32 @@
 <body onload="load()">
     <!-- Blackbar -->
     <div class="blackbarContainer">
-        <button onclick="OverlayOn('overlayRegister')" class="blackbarButtons">Register</button>
-        <button onclick="OverlayOn('overlayLogin')" class="blackbarButtons">Login</button>
+        <button onclick="overlayOn('overlayRegister')" class="blackbarButtons">Register</button>
+        <button onclick="overlayOn('overlayLogin')" class="blackbarButtons">Login</button>
+    </div>
+
+    <!-- Feedback Boxes -->
+    <div id="unknownErrorBox" style="display: none; background-color: red; padding: 15px; text-align: center;">
+        Uh oh. Something went wrong! Please try again in a few moments.
+    </div>
+    <div id="missingDataBox" style="display: none; background-color: red; padding: 15px; text-align: center;">
+        You did not supply a enough data to create an account!
     </div>
 
     <div id="accountSuccessBox"
         style="display: none; background-color: greenyellow; padding: 15px; text-align: center;">Account Created!
     </div>
+    <div id="accountExistsBox" style="display: none; background-color: orange; padding: 15px; text-align: center;">
+        Account with that username already exists!
+    </div>
+    <div id="loginSuccessfulBox"
+        style="display: none; background-color: greenyellow; padding: 15px; text-align: center;">
+        Login Successful!
+    </div>
 
     <!-- Register Form -->
     <div id="overlayRegister" class="overlay">
-        <!-- STOP THE FORM FROM REFRESHING -->
-        <form onsubmit="() => { createAccount(); return false }" onreset="OverlayOff('overlayRegister')">
+        <form id="registerForm" onsubmit="createAccount(event)" onreset="overlayOff('overlayRegister')">
             <div class="accountContainer">
                 <h1 style="display: inline-block;">Register</h1>
                 <button type="reset" class="exitOverlayButton"><i class="fa fa-times fa-2x"
@@ -41,23 +55,23 @@
                     <input type="checkbox" name="TermsAndPrivacy" id="TermsAndPrivacy" required></input>
                     <label>By creating an account you agree to our <a href="#">Terms & Privacy</a>.</label>
                 </div>
-                <button type="submit" class="proceedButton">Create an account</button>
+                <button type="submit" class="proceedButton" id="createAccountButton">Create an account</button>
             </div>
         </form>
     </div>
 
     <!-- Login Form -->
     <div id="overlayLogin" class="overlay">
-        <form>
+        <form id="loginForm" onsubmit="login(event)" onreset="overlayOff('overlayLogin')">
             <div class="accountContainer">
                 <h1 style="display: inline-block;">Login</h1>
-                <button class="exitOverlayButton" onclick="OverlayOff('overlayLogin')"><i class="fa fa-times fa-2x"
+                <button type="reset" class="exitOverlayButton"><i class="fa fa-times fa-2x"
                         aria-hidden="true"></i></button>
                 <hr>
-                <input type="text" placeholder="Username" id="username" required>
-                <input type="password" placeholder="Password" id="password" required>
+                <input type="text" placeholder="Username" name="loginUsername" id="loginUsername" required>
+                <input type="password" placeholder="Password" name="loginPassword" id="loginPassword" required>
                 <hr>
-                <button type="submit" class="proceedButton">Login</button>
+                <button type="submit" class="proceedButton" id="loginButton">Login</button>
             </div>
         </form>
     </div>

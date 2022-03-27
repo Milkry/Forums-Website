@@ -1,3 +1,4 @@
+from time import sleep
 from flask import Flask, jsonify, session, request, url_for, render_template
 import sqlite3
 
@@ -15,37 +16,46 @@ def view():
     return "Not Okay..."
 
 
-@app.route('/register/account/<username>/<password>', methods=["POST"])
-def newAccount(username, password):
-    """if username and password:
+@app.route('/register/<username>/<password>', methods=["POST"])
+def register(username, password):
+    sleep(1)
+    """print(username, password)
+    if username and password:
+        sleep(1)
         db = sqlite3.connect(PATH)
         cursor = db.cursor()
 
+        # Determine if the account exists
         accoundFound = False
         account = cursor.execute(
             "select userID from user where userName=?", (username,))
         for row in account:
             accoundFound = True
 
-        # If a record was found, then...
+        # If it does, then return an error and let the user know. Else create it.
         if accoundFound:
             print("Account found! Aborting...")
-            return {'ERROR': 'USER_EXISTS'}
+            return 'USER_EXISTS'
         else:
             print("Creating a new account...")
             cursor.execute(
                 "insert into user (userName, passwordHash, isAdmin, creationTime, lastVisit) values (?, ?, 0, 1, 1)", (username, password,))
             db.commit()
             db.close()
-            return {'SUCCESS': 'USER_CREATED'}
-"""
-    return {'SUCCESS': 'USER_CREATED'}
+            return 'USER_CREATED'"""
+    return 'MISSING_DATA'
     # if not then go ahead create the account using cookies and store in database too
 
+
+@app.route('/login/<username>/<password>', methods=["POST"])
+def login(username, password):
+    sleep(1)
+    return 'LOGIN_SUCCESSFUL'
 
 ####################################################################
 ######################### HELPER FUNCTIONS #########################
 ####################################################################
+
 
 def isUserValid():
     return True

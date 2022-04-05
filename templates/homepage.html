@@ -3,6 +3,7 @@
 
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="../static/Resources/Images/logo.png">
     <link rel="stylesheet" type="text/css" href="../static/CSS/main.css">
     <link rel="stylesheet" type="text/css"
         href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -13,44 +14,78 @@
 <body onload="load()">
     <!-- Blackbar -->
     <div class="blackbarContainer">
-        <button onclick="overlayOn('overlayRegister')" class="blackbarButtons">Register</button>
-        <button onclick="overlayOn('overlayLogin')" class="blackbarButtons">Login</button>
+        <button id="homeBtn" style="float: left;" onclick="location.href='/'" class="blackbarButtons"><i
+                class="fa fa-home fa-lg" aria-hidden="true"></i></button>
+
+        {% if username is defined %}
+        <span style="color: white;">Hello, <b>{{ username }}</b>!</span>
+        {% endif %}
+        {% if loggedIn is defined %}
+        <button id="logoutBtn" style="display: inline-block;" onclick="location.href='/logout'"
+            class="blackbarButtons"><i class="fa fa-sign-out fa-lg" aria-hidden="true"></i></button>
+        {% else %}
+        <button id="registerBtn" style="display: inline-block;" onclick="overlayOn('overlayRegister')"
+            class="blackbarButtons">Register</button>
+        <button id="loginBtn" style="display: inline-block;" onclick="overlayOn('overlayLogin')"
+            class="blackbarButtons">Login</button>
+        {% endif %}
     </div>
 
     <!-- Feedback Boxes -->
-    <div id="unknownErrorBox" style="display: none; background-color: red; padding: 15px; text-align: center;">
-        Uh oh. Something went wrong! Please try again in a few moments.
+    <!-- General Errors Boxes -->
+    <!-- WORK ON THE COLORS/ICONS FOR THESE MESSAGES -->
+    <div id="unknownErrorBox"
+        style="display: none; color: white; background-color: red; padding: 15px; text-align: center;">
+        <b>Uh oh. Something went wrong! Please try again in a few moments</b>
     </div>
-    <div id="missingDataBox" style="display: none; background-color: red; padding: 15px; text-align: center;">
-        You did not supply a enough data to create an account!
+    <div id="missingDataBox"
+        style="display: none; color: white; background-color: red; padding: 15px; text-align: center;">
+        <b>Not enough data</b>
     </div>
 
+    <!-- Register Boxes -->
     <div id="accountSuccessBox"
-        style="display: none; background-color: greenyellow; padding: 15px; text-align: center;">Account Created!
+        style="display: none; color: black; background-color: greenyellow; padding: 15px; text-align: center;">
+        <b>Account Created!</b>
     </div>
-    <div id="accountExistsBox" style="display: none; background-color: orange; padding: 15px; text-align: center;">
-        Account with that username already exists!
+    <div id="accountExistsBox"
+        style="display: none; color: black; background-color: orange; padding: 15px; text-align: center;">
+        <b>Account with that username already exists!</b>
     </div>
+
+    <!-- Login Boxes -->
     <div id="loginSuccessfulBox"
-        style="display: none; background-color: greenyellow; padding: 15px; text-align: center;">
-        Login Successful!
+        style="display: none; color: black; background-color: greenyellow; padding: 15px; text-align: center;">
+        <b>Login Successful!</b>
+    </div>
+    <div id="loginFailedPasswordBox"
+        style="display: none; color: black; background-color: orange; padding: 15px; text-align: center;">
+        <b>Incorrect password</b>
+    </div>
+    <div id="loginFailedUsernameBox"
+        style="display: none; color: black; background-color: orange; padding: 15px; text-align: center;">
+        <b>Account is not in our records</b>
     </div>
 
     <!-- Register Form -->
     <div id="overlayRegister" class="overlay">
-        <form id="registerForm" onsubmit="createAccount(event)" onreset="overlayOff('overlayRegister')">
+        <form id="registerForm" onsubmit="register(event)" onreset="overlayOff('overlayRegister')">
             <div class="accountContainer">
                 <h1 style="display: inline-block;">Register</h1>
                 <button type="reset" class="exitOverlayButton"><i class="fa fa-times fa-2x"
                         aria-hidden="true"></i></button>
-                <hr>
+                <hr class="hrForm">
+                <div id="statusMessage" class="passwordMismatch">
+                    <i class="fa fa-times-circle" aria-hidden="true"></i>
+                    <span><b>Password Mismatch</b></span>
+                </div>
                 <input type="text" placeholder="Username" name="registerUsername" id="registerUsername" minlength="3"
                     maxlength="25" required>
-                <input type="password" placeholder="Password" name="registerPassword" id="registerPassword"
-                    minlength="4" required>
-                <input type="password" placeholder="Confirm password" name="confirmPassword" id="confirmPassword"
-                    minlength="4" required>
-                <hr>
+                <input type="password" onchange="validation()" placeholder="Password" name="registerPassword"
+                    id="registerPassword" minlength="4" required>
+                <input type="password" onchange="validation()" placeholder="Confirm Password" name="confirmPassword"
+                    id="confirmPassword" minlength="4" required>
+                <hr class="hrForm">
                 <div style="margin-bottom: 20px;">
                     <input type="checkbox" name="TermsAndPrivacy" id="TermsAndPrivacy" required></input>
                     <label>By creating an account you agree to our <a href="#">Terms & Privacy</a>.</label>
@@ -67,26 +102,35 @@
                 <h1 style="display: inline-block;">Login</h1>
                 <button type="reset" class="exitOverlayButton"><i class="fa fa-times fa-2x"
                         aria-hidden="true"></i></button>
-                <hr>
+                <hr class="hrForm">
                 <input type="text" placeholder="Username" name="loginUsername" id="loginUsername" required>
                 <input type="password" placeholder="Password" name="loginPassword" id="loginPassword" required>
-                <hr>
+                <hr class="hrForm">
                 <button type="submit" class="proceedButton" id="loginButton">Login</button>
             </div>
         </form>
     </div>
 
     <!-- Logo -->
-    <div class="forumContainer">
-        <h1 style="vertical-align: middle;" class="forumTitle"><img style="vertical-align: middle;" width="300px"
+    <div class="logoContainer">
+        <h1 style="vertical-align: middle;" class="logoTitle"><img style="vertical-align: middle;" width="300px"
                 height="300px" src="../static/Resources/Images/logo.png" />FORUMS</h1>
     </div>
 
+    <template>
+        <div onclick="" class="topicContainer">
+            <hr>
+            <i class="fa fa-comments fa-4x topicIcon" aria-hidden="true"></i>
+            <span class="topic">Topic</span>
+            <hr>
+        </div>
+    </template>
+
     <!-- Topics -->
     <div class="forums">
-        <label class="searchLabel">Search:</label>
+        <label class="searchLabel"><i class="fa fa-search" aria-hidden="true"></i></label>
         <input class="searchField" type="search" placeholder="Search for..." id="search" />
-        <p>Forums topics will go here</p>
+        <div id="topicsContainer"></div>
     </div>
 </body>
 
@@ -94,6 +138,7 @@
     .blackbarContainer {
         background-color: rgb(80, 80, 80);
         text-align: right;
+        display: block;
     }
 
     .blackbarButtons {
@@ -110,12 +155,49 @@
         opacity: 1;
     }
 
-    .forumContainer {
+    .passwordMismatch {
+        color: white;
+        background-color: red;
+        text-align: center;
+        display: none;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 0 10px 25px 25px;
+    }
+
+    .hrForm {
+        border: 2px solid #929292;
+        border-radius: 50%;
+        margin-bottom: 22px;
+        margin-left: 25px;
+        margin-right: 25px;
+    }
+
+    .topicContainer {
+        margin: 20px;
+        cursor: pointer;
+    }
+
+    .topicIcon {
+        color: white;
+        vertical-align: middle;
+        margin-left: 40px;
+    }
+
+    .topic {
+        color: white;
+        padding: 10px;
+        margin-right: 10px;
+        font-size: 25px;
+        vertical-align: middle;
+    }
+
+    .logoContainer {
         margin-top: 10px;
         margin-bottom: 10px;
     }
 
-    .forumTitle {
+    .logoTitle {
         margin: auto;
         text-align: center;
         font-size: 60px;

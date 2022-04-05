@@ -1,9 +1,23 @@
 "use strict";
 
 var mutex = null;
+var notificationInterval = 3000; // milliseconds
 
 function load() {
     mutex = false;
+    loadSampleTopics();
+    loadSampleTopics();
+    loadSampleTopics();
+    loadSampleTopics();
+    loadSampleTopics();
+    loadSampleTopics();
+}
+
+function loadSampleTopics() {
+    var temp = document.getElementsByTagName("template")[0];
+    var clon = temp.content.cloneNode(true);
+
+    document.getElementById("topicsContainer").appendChild(clon);
 }
 
 function overlayOn(id) {
@@ -14,12 +28,30 @@ function overlayOff(id) {
     document.getElementById(id).style.display = "none";
 }
 
+function validation() {
+    let psw = document.getElementById("registerPassword");
+    let confirmpsw = document.getElementById("confirmPassword");
+    let statusMsg = document.getElementById("statusMessage");
+
+    if (psw.value !== "" && confirmpsw.value !== "" && psw.value !== confirmpsw.value) {
+        statusMsg.style.display = "block";
+        return false;
+    }
+    else {
+        statusMsg.style.display = "none";
+        return true;
+    }
+}
+
 function register(e) {
     e.preventDefault(); // Prevents the site from refreshing after form submission
+
+    if (!validation()) return;
 
     if (mutex) return;
     mutex = true;
 
+    var box;
     let createAccountButton = document.getElementById("createAccountButton");
     let createAccountButtonColor = createAccountButton.style.background;
     createAccountButton.disabled = true;
@@ -35,20 +67,28 @@ function register(e) {
     request.onload = () => {
         switch (request.response) {
             case 'USER_CREATED':
-                document.getElementById("accountSuccessBox").style.display = "block";
-                // need a timer to remove the green bar later
+                //box = document.getElementById("accountSuccessBox").style;
+                //box.display = "block";
+                //setTimeout(() => box.display = "none", notificationInterval);
+                location.href = '/';
                 break;
 
             case 'USER_EXISTS':
-                document.getElementById("accountExistsBox").style.display = "block";
+                box = document.getElementById("accountExistsBox").style;
+                box.display = "block";
+                setTimeout(() => box.display = "none", notificationInterval);
                 break;
 
             case 'MISSING_DATA':
-                document.getElementById("missingDataBox").style.display = "block";
+                box = document.getElementById("missingDataBox").style;
+                box.display = "block";
+                setTimeout(() => box.display = "none", notificationInterval);
                 break;
 
             default:
-                document.getElementById("unknownErrorBox").style.display = "block";
+                box = document.getElementById("unknownErrorBox").style;
+                box.display = "block";
+                setTimeout(() => box.display = "none", notificationInterval);
                 break;
         }
         document.getElementById("registerForm").reset(); // use a jquery instead here
@@ -66,6 +106,7 @@ function login(e) {
     if (mutex) return;
     mutex = true;
 
+    var box;
     let loginButton = document.getElementById("loginButton");
     let loginButtonColor = loginButton.style.background;
     loginButton.disabled = true;
@@ -81,16 +122,33 @@ function login(e) {
     request.onload = () => {
         switch (request.response) {
             case 'LOGIN_SUCCESSFUL':
-                document.getElementById("loginSuccessfulBox").style.display = "block";
-                // need a timer to remove the green bar later
+                //box = document.getElementById("loginSuccessfulBox").style;
+                //box.display = "block";
+                location.href = '/';
+                break;
+
+            case 'LOGIN_FAILED_PASSWORD':
+                box = document.getElementById("loginFailedPasswordBox").style;
+                box.display = "block";
+                setTimeout(() => box.display = "none", notificationInterval);
+                break;
+
+            case 'LOGIN_FAILED_USERNAME':
+                box = document.getElementById("loginFailedUsernameBox").style;
+                box.display = "block";
+                setTimeout(() => box.display = "none", notificationInterval);
                 break;
 
             case 'MISSING_DATA':
-                document.getElementById("missingDataBox").style.display = "block";
+                box = document.getElementById("missingDataBox").style;
+                box.display = "block";
+                setTimeout(() => box.display = "none", notificationInterval);
                 break;
 
             default:
-                document.getElementById("unknownErrorBox").style.display = "block";
+                box = document.getElementById("unknownErrorBox").style;
+                box.display = "block";
+                setTimeout(() => box.display = "none", notificationInterval);
                 break;
         }
         document.getElementById("loginForm").reset(); // use a jquery instead here

@@ -1,5 +1,4 @@
-from time import sleep
-from flask import Flask, jsonify, session, request, url_for, render_template
+from flask import Flask, redirect, session, url_for, render_template
 import sqlite3
 
 app = Flask(__name__)
@@ -10,18 +9,16 @@ PATH = "./ScriptsDB/forums.db"
 
 
 @app.route('/')
-def view():
-    if isUserValid():
-        return render_template("homepage.html")
-    return "Not Okay..."
+def homepage():
+    if isUserLoggedIn():
+        username = getUsername(getUserIDFromSession())
+        return render_template("homepage.html", loggedIn=True, username=username)
+    return render_template("homepage.html")
 
 
 @app.route('/register/<username>/<password>', methods=["POST"])
 def register(username, password):
-    sleep(1)
-    """print(username, password)
-    if username and password:
-        sleep(1)
+    if username and password and not isUserLoggedIn():
         db = sqlite3.connect(PATH)
         cursor = db.cursor()
 
@@ -34,32 +31,72 @@ def register(username, password):
 
         # If it does, then return an error and let the user know. Else create it.
         if accoundFound:
-            print("Account found! Aborting...")
             return 'USER_EXISTS'
         else:
-            print("Creating a new account...")
             cursor.execute(
                 "insert into user (userName, passwordHash, isAdmin, creationTime, lastVisit) values (?, ?, 0, 1, 1)", (username, password,))
+            newAccount = cursor.execute(
+                "select userID from user where userName=?", (username,))
+            for row in newAccount:
+                session["userID"] = row[0]
             db.commit()
             db.close()
-            return 'USER_CREATED'"""
+            return 'USER_CREATED'
     return 'MISSING_DATA'
-    # if not then go ahead create the account using cookies and store in database too
 
 
 @app.route('/login/<username>/<password>', methods=["POST"])
 def login(username, password):
-    sleep(1)
-    return 'LOGIN_SUCCESSFUL'
+    if username and password and not isUserLoggedIn():
+        db = sqlite3.connect(PATH)
+        cursor = db.cursor()
+
+        account = cursor.execute(
+            "select userID, passwordHash from user where userName=?", (username,))
+
+        # If the for loop doesn't get executed, then the account doesn't exist
+        for user in account:
+            if user[1] == password:
+                session["userID"] = user[0]
+                db.close()
+                return 'LOGIN_SUCCESSFUL'
+            else:
+                db.close()
+                return 'LOGIN_FAILED_PASSWORD'
+        db.close()
+        return 'LOGIN_FAILED_USERNAME'
+    return 'MISSING_DATA'
+
+
+@app.route('/logout')
+def logout():
+    if isUserLoggedIn():
+        session.clear()
+    return redirect(url_for("homepage"))
+
 
 ####################################################################
 ######################### HELPER FUNCTIONS #########################
 ####################################################################
 
+# Returns true if the user is currently logged in and false if not
+def isUserLoggedIn():
+    if session.get("userID"):
+        return True
+    return False
 
-def isUserValid():
-    return True
-    # upon loading the site, we need to check
-    # if user is logged in (check session)
-    # then, render the homepage template using a jinja condition that displays the user account along with it
-    # else again render the homepage template but without showing the account user (will show register/login)
+
+# Returns the userID from the browser session
+def getUserIDFromSession():
+    return session.get("userID")
+
+
+def getUsername(id):
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    user = cursor.execute(
+        "select userName from user where userID=?", (id,))
+    for row in user:
+        username = row[0]
+    db.close()
+    return username

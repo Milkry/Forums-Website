@@ -1,0 +1,203 @@
+/*
+ * A global CSS file used by all pages
+ */
+
+/* ###################### CSS IDS ###################### */
+#overlayRegister {
+    display: none;
+}
+
+#overlayLogin {
+    display: none;
+}
+
+#overlayTopic {
+    display: none;
+}
+
+#inputFields {
+    text-align: center;
+}
+
+#forumHierarchy {
+    color: white;
+    margin: 20px;
+    margin-bottom: 30px;
+    font-size: 30px;
+}
+/* ##################################################### */
+
+
+
+/* ###################### ELEMENTS ##################### */
+body {
+    font-family: Helvetica, sans-serif;
+    background-color: #2E2A2E;
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6, p {
+    color: white;
+}
+
+/* For links */
+a {
+    color: dodgerblue;
+}
+
+hr {
+    border: 2px solid #929292;
+    border-radius: 50%;
+    margin-left: 25px;
+    margin-right: 25px;
+}
+
+input[type=text],
+input[type=password] {
+    background: #f1f1f1;
+    display: inline-block;
+    border: none;
+    width: 90%;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    padding-left: 10px;
+    margin-top: 5px;
+    margin-bottom: 22px;
+}
+
+input[type=text]:focus,
+input[type=password]:focus {
+    background-color: #ddd;
+    outline: none;
+}
+
+label {
+    color: white;
+}
+/* ##################################################### */
+
+
+
+/* #################### CSS CLASSES #################### */
+/* Use this class to apply the overlaying effect */
+.overlay {
+    background-color: rgba(0,0,0,0.75);
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+}
+
+.forumsContainer {
+    background-color: #4d4d4d;
+    padding: 20px;
+    border-radius: 25px;
+    margin-top: 40px;
+    margin-left: 15%;
+    margin-right: 15%;
+}
+
+.searchField {
+    background-color: white;
+    vertical-align: middle;
+    border: none;
+    width: 15%;
+    margin: 5px;
+    padding: 5px;
+}
+
+.searchLabel {
+    color: white;
+    vertical-align: middle;
+    margin: 5px;
+}
+
+.createTopicContainer {
+    background-color: rgb(36, 36, 36);
+    border: 2px solid whitesmoke;
+    margin: 20px;
+    padding: 30px;
+    width: 25%;
+}
+
+.centerDiv {
+    position: absolute;
+    margin: 0;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.exitOverlayButton {
+    color: white;
+    background-color: transparent;
+    border: none;
+    float: right;
+    cursor: pointer;
+    padding: 15px;
+    opacity: 0.85;
+}
+
+.exitOverlayButton:active,
+.exitOverlayButton:hover {
+    opacity: 1;
+}
+
+.blackbarContainer {
+    background-color: rgb(80, 80, 80);
+    text-align: right;
+    display: block;
+}
+
+.blackbarButtons {
+    color: white;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 15px;
+    font-size: 16px;
+    opacity: 0.85;
+}
+
+.blackbarButtons:active,
+.blackbarButtons:hover {
+    background-color: rgba(190, 190, 190, 0.25);
+    border-radius: 10px;
+    opacity: 1;
+}
+
+.btn {
+    background-color: purple;
+    color: white;
+    vertical-align: middle;
+    cursor: pointer;
+    border-radius: 10px;
+    margin: 2px;
+    padding: 10px;
+    opacity: 0.85;
+}
+
+.btn:active,
+.btn:hover {
+    opacity: 1;
+}
+
+.proceedButton {
+    background-color: purple;
+    color: white;
+    width: 100%;
+    padding: 20px;
+    opacity: 0.9;
+    cursor: pointer;
+}
+
+.proceedButton:active,
+.proceedButton:hover {
+    opacity: 1;
+}
+/* ##################################################### */

@@ -5,19 +5,6 @@ var notificationInterval = 3000; // milliseconds
 
 function load() {
     mutex = false;
-    loadSampleTopics();
-    loadSampleTopics();
-    loadSampleTopics();
-    loadSampleTopics();
-    loadSampleTopics();
-    loadSampleTopics();
-}
-
-function loadSampleTopics() {
-    var temp = document.getElementsByTagName("template")[0];
-    var clon = temp.content.cloneNode(true);
-
-    document.getElementById("topicsContainer").appendChild(clon);
 }
 
 function overlayOn(id) {
@@ -52,14 +39,14 @@ function register(e) {
     mutex = true;
 
     var box;
-    let createAccountButton = document.getElementById("createAccountButton");
-    let createAccountButtonColor = createAccountButton.style.background;
-    createAccountButton.disabled = true;
-    createAccountButton.style.background = "gray";
+    let button = document.getElementById("proceedButton");
+    let buttonColor = button.style.background;
+    button.disabled = true;
+    button.style.background = "gray";
     let data =
     {
-        username: document.getElementById("registerUsername").value,
-        password: document.getElementById("registerPassword").value
+        username: $("#registerUsername").val(),
+        password: $("#registerPassword").val()
     };
 
     var request = new XMLHttpRequest();
@@ -92,8 +79,8 @@ function register(e) {
                 break;
         }
         document.getElementById("registerForm").reset(); // use a jquery instead here
-        createAccountButton.disabled = false;
-        createAccountButton.style.background = createAccountButtonColor; // Restores the original color
+        button.disabled = false;
+        button.style.background = buttonColor; // Restores the original color
         overlayOff("overlayRegister"); // Close the form
         mutex = false;
     }
@@ -107,14 +94,14 @@ function login(e) {
     mutex = true;
 
     var box;
-    let loginButton = document.getElementById("loginButton");
-    let loginButtonColor = loginButton.style.background;
-    loginButton.disabled = true;
-    loginButton.style.background = "gray";
+    let button = document.getElementById("proceedButton");
+    let buttonColor = button.style.background;
+    button.disabled = true;
+    button.style.background = "gray";
     let data =
     {
-        username: document.getElementById("loginUsername").value,
-        password: document.getElementById("loginPassword").value
+        username: $("#loginUsername").val(),
+        password: $("#loginPassword").val()
     };
 
     var request = new XMLHttpRequest();
@@ -152,9 +139,99 @@ function login(e) {
                 break;
         }
         document.getElementById("loginForm").reset(); // use a jquery instead here
-        loginButton.disabled = false;
-        loginButton.style.background = loginButtonColor; // Restores the original color
+        button.disabled = false;
+        button.style.background = buttonColor; // Restores the original color
         overlayOff("overlayLogin"); // Close the form
+        mutex = false;
+    }
+    request.send();
+}
+
+function createTopic(e) {
+    e.preventDefault();
+
+    if (mutex) return;
+    mutex = true;
+
+    var box;
+    let button = document.getElementById("proceedButton");
+    let buttonColor = button.style.background;
+    button.disabled = true;
+    button.style.background = "gray";
+    let data =
+    {
+        topicName: $("#topicName").val(),
+    };
+
+    var request = new XMLHttpRequest();
+    request.open("POST", "/topic/create/" + data.topicName, true);
+    request.onload = () => {
+        switch (request.response) {
+            case 'TOPIC_CREATED':
+                //box = document.getElementById("loginSuccessfulBox").style;
+                //box.display = "block";
+                location.href = '/';
+                break;
+
+            case 'MISSING_DATA':
+                box = document.getElementById("missingDataBox").style;
+                box.display = "block";
+                setTimeout(() => box.display = "none", notificationInterval);
+                break;
+
+            default:
+                box = document.getElementById("unknownErrorBox").style;
+                box.display = "block";
+                setTimeout(() => box.display = "none", notificationInterval);
+                break;
+        }
+        document.getElementById("createTopic").reset(); // use a jquery instead here
+        button.disabled = false;
+        button.style.background = buttonColor; // Restores the original color
+        overlayOff("overlayTopic"); // Close the form
+        mutex = false;
+    }
+    request.send();
+}
+
+function createClaim() {
+    if (mutex) return;
+    mutex = true;
+
+    var box;
+    let button = document.getElementById("proceedButton");
+    let buttonColor = button.style.background;
+    button.disabled = true;
+    button.style.background = "gray";
+    let data =
+    {
+        claimText: $("#claimText").val(),
+    };
+
+    var request = new XMLHttpRequest();
+    request.open("POST", "/" + data.claimText, true);
+    request.onload = () => {
+        switch (request.response) {
+            case 'CLAIM_CREATED':
+                //box = document.getElementById("loginSuccessfulBox").style;
+                //box.display = "block";
+                location.href = '/';
+                break;
+
+            case 'MISSING_DATA':
+                box = document.getElementById("missingDataBox").style;
+                box.display = "block";
+                setTimeout(() => box.display = "none", notificationInterval);
+                break;
+
+            default:
+                box = document.getElementById("unknownErrorBox").style;
+                box.display = "block";
+                setTimeout(() => box.display = "none", notificationInterval);
+                break;
+        }
+        button.disabled = false;
+        button.style.background = buttonColor; // Restores the original color
         mutex = false;
     }
     request.send();

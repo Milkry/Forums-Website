@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='Resources/Images/logo.png') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='CSS/global.css') }}">
+    <title>Claims</title>
+</head>
+
+<body>
+    <div class="forums">
+        <h1 class="error404">Error 404: {{ content }} Not Found</h1>
+        <p class="description">Whoops! Looks like this page doesn't exist...</p>
+        <p class="description">Go back to the <a href="/">Homepage</a>?</p>
+    </div>
+</body>
+
+<style>
+    .error404 {
+        color: white;
+        font-size: 70px;
+        text-align: center;
+    }
+
+    .description {
+        color: white;
+        font-size: 25px;
+        text-align: center;
+    }
+</style>
+
+</html>

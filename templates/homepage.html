@@ -3,11 +3,12 @@
 
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" type="image/x-icon" href="../static/Resources/Images/logo.png">
-    <link rel="stylesheet" type="text/css" href="../static/CSS/main.css">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='Resources/Images/logo.png') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='CSS/global.css') }}">
     <link rel="stylesheet" type="text/css"
         href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    <script src="../static/Scripts/homepage.js"></script>
+    <script src="{{ url_for('static', filename='Scripts/global.js') }}"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <title>Forums Homepage</title>
 </head>
 
@@ -16,7 +17,6 @@
     <div class="blackbarContainer">
         <button id="homeBtn" style="float: left;" onclick="location.href='/'" class="blackbarButtons"><i
                 class="fa fa-home fa-lg" aria-hidden="true"></i></button>
-
         {% if username is defined %}
         <span style="color: white;">Hello, <b>{{ username }}</b>!</span>
         {% endif %}
@@ -79,18 +79,20 @@
                     <i class="fa fa-times-circle" aria-hidden="true"></i>
                     <span><b>Password Mismatch</b></span>
                 </div>
-                <input type="text" placeholder="Username" name="registerUsername" id="registerUsername" minlength="3"
-                    maxlength="25" required>
-                <input type="password" onchange="validation()" placeholder="Password" name="registerPassword"
-                    id="registerPassword" minlength="4" required>
-                <input type="password" onchange="validation()" placeholder="Confirm Password" name="confirmPassword"
-                    id="confirmPassword" minlength="4" required>
-                <hr class="hrForm">
+                <div id="inputFields">
+                    <input type="text" placeholder="Username" name="registerUsername" id="registerUsername"
+                        minlength="3" maxlength="25" required>
+                    <input type="password" onchange="validation()" placeholder="Password" name="registerPassword"
+                        id="registerPassword" minlength="4" required>
+                    <input type="password" onchange="validation()" placeholder="Confirm Password" name="confirmPassword"
+                        id="confirmPassword" minlength="4" required>
+                    <hr class="hrForm">
+                </div>
                 <div style="margin-bottom: 20px;">
                     <input type="checkbox" name="TermsAndPrivacy" id="TermsAndPrivacy" required></input>
                     <label>By creating an account you agree to our <a href="#">Terms & Privacy</a>.</label>
                 </div>
-                <button type="submit" class="proceedButton" id="createAccountButton">Create an account</button>
+                <button type="submit" class="proceedButton" id="proceedButton">Create an account</button>
             </div>
         </form>
     </div>
@@ -102,11 +104,30 @@
                 <h1 style="display: inline-block;">Login</h1>
                 <button type="reset" class="exitOverlayButton"><i class="fa fa-times fa-2x"
                         aria-hidden="true"></i></button>
-                <hr class="hrForm">
-                <input type="text" placeholder="Username" name="loginUsername" id="loginUsername" required>
-                <input type="password" placeholder="Password" name="loginPassword" id="loginPassword" required>
-                <hr class="hrForm">
-                <button type="submit" class="proceedButton" id="loginButton">Login</button>
+                <div id="inputFields">
+                    <hr class="hrForm">
+                    <input type="text" placeholder="Username" name="loginUsername" id="loginUsername" required>
+                    <input type="password" placeholder="Password" name="loginPassword" id="loginPassword" required>
+                    <hr class="hrForm">
+                </div>
+                <button type="submit" class="proceedButton" id="proceedButton">Login</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Create Topic -->
+    <div id="overlayTopic" class="overlay">
+        <form id="createTopic" onsubmit="createTopic(event)" onreset="overlayOff('overlayTopic')">
+            <div class="createTopicContainer centerDiv">
+                <h1 style="display: inline-block;">Create Topic</h1>
+                <button type="reset" class="exitOverlayButton"><i class="fa fa-times fa-2x"
+                        aria-hidden="true"></i></button>
+                <div id="inputFields">
+                    <hr class="hrForm">
+                    <input type="text" placeholder="Topic Name" name="topicName" id="topicName" required>
+                    <hr class="hrForm">
+                </div>
+                <button type="submit" class="proceedButton" id="proceedButton">Create</button>
             </div>
         </form>
     </div>
@@ -117,44 +138,26 @@
                 height="300px" src="../static/Resources/Images/logo.png" />FORUMS</h1>
     </div>
 
-    <template>
-        <div onclick="" class="topicContainer">
+    <!-- Topics Section -->
+    <div class="forumsContainer">
+        <label class="searchLabel"><i class="fa fa-search" aria-hidden="true"></i></label>
+        <input class="searchField" type="search" placeholder="Search..." id="search" />
+        {% if loggedIn is defined %}
+        <button style="float: right;" class="btn" onclick="overlayOn('overlayTopic')">New Topic</button>
+        {% endif %}
+
+        {% for topic in topics %}
+        <div onclick="location.href='/{{ loop.index }}'" class="topicContainer">
             <hr>
-            <i class="fa fa-comments fa-4x topicIcon" aria-hidden="true"></i>
-            <span class="topic">Topic</span>
+            <i class="fa fa-comments-o fa-4x topicIcon" aria-hidden="true"></i>
+            <span class="topic">{{ topic }}</span>
             <hr>
         </div>
-    </template>
-
-    <!-- Topics -->
-    <div class="forums">
-        <label class="searchLabel"><i class="fa fa-search" aria-hidden="true"></i></label>
-        <input class="searchField" type="search" placeholder="Search for..." id="search" />
-        <div id="topicsContainer"></div>
+        {% endfor %}
     </div>
 </body>
 
 <style>
-    .blackbarContainer {
-        background-color: rgb(80, 80, 80);
-        text-align: right;
-        display: block;
-    }
-
-    .blackbarButtons {
-        color: white;
-        background-color: transparent;
-        border: none;
-        cursor: pointer;
-        padding: 15px;
-        font-size: 16px;
-        opacity: 0.85;
-    }
-
-    .blackbarButtons:hover {
-        opacity: 1;
-    }
-
     .passwordMismatch {
         color: white;
         background-color: red;
@@ -211,23 +214,6 @@
         height: 100%;
         padding: 30px;
         width: 25%;
-    }
-
-    .proceedButton {
-        background-color: purple;
-        color: white;
-        width: 100%;
-        padding: 20px;
-        opacity: 0.9;
-        cursor: pointer;
-    }
-
-    .proceedButton:hover {
-        opacity: 1;
-    }
-
-    label {
-        color: white;
     }
 </style>
 

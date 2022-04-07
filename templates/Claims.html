@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='Resources/Images/logo.png') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='CSS/global.css') }}">
+    <link rel="stylesheet" type="text/css"
+        href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="{{ url_for('static', filename='Scripts/global.js') }}"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <title>Claims</title>
+</head>
+
+<body>
+    <div class="forumsContainer">
+        <div id="forumHierarchy"><b>Topic:</b> {{ topicName }}</div>
+        <label class="searchLabel"><i class="fa fa-search" aria-hidden="true"></i></label>
+        <input class="searchField" type="search" placeholder="Search..." id="search" />
+        {% if loggedIn is defined %}
+        <button class="btn" onclick="location.href='/{{ topicId }}/claim/new'">New Claim</button>
+        {% endif %}
+
+        {% for claim in claims %}
+        <div onclick="location.href='/{{ topicId }}/{{ loop.index }}'" class="claimContainer">
+            <hr>
+            <i class="fa fa-commenting-o fa-4x claimIcon" aria-hidden="true"></i>
+            <span class="claim">{{ claim }}</span>
+            <hr>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+
+<style>
+    .claimContainer {
+        margin: 20px;
+        cursor: pointer;
+    }
+
+    .claimIcon {
+        color: white;
+        vertical-align: middle;
+        margin-left: 40px;
+    }
+
+    .claim {
+        color: white;
+        padding: 10px;
+        margin-right: 10px;
+        font-size: 25px;
+        vertical-align: middle;
+    }
+</style>
+
+</html>

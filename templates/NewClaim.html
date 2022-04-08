@@ -15,10 +15,12 @@
 <body>
     <!-- Create Claim -->
     <div class="forumsContainer">
-        <form onsubmit="createClaim()">
+        <div id="forumHierarchy"><b>Posting at:</b> {{ topicName }}</div>
+        <form onsubmit="createClaim(event, '{{ topicId }}', '{{ userId }}')">
             <div id="inputFields">
                 <hr class="hrForm">
-                <input type="text" placeholder="Description..." name="claimText" id="claimText" autofocus required>
+                <textarea rows="15" placeholder="Describe your claim (minimum 15 characters)..." minlength="15"
+                    name="claimText" id="claimText" required></textarea>
                 <hr class="hrForm">
             </div>
             <button type="submit" class="proceedButton" id="proceedButton">Submit Claim</button>
@@ -27,6 +29,10 @@
 </body>
 
 <style>
+    textarea {
+        width: 95%;
+        resize: vertical;
+    }
 </style>
 
 </html>

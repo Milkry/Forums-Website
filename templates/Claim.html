@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='Resources/Images/logo.png') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='CSS/global.css') }}">
+    <link rel="stylesheet" type="text/css"
+        href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="{{ url_for('static', filename='Scripts/global.js') }}"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <title>{% block title %}Claim: {{ username }}{% endblock %}</title>
+</head>
+
+<body>
+    <div class="forumsContainer">
+        <div id="forumHierarchy">{{ topicName }} >> {{ username }}</div>
+        <div class="grid-container">
+            <p class="userInfo"><img class="userProfile grid-item" width="50%" height="50%"
+                    src="{{ url_for('static', filename='Resources/Images/default_user.png') }}">
+                {{ username }}</p>
+            <div class="claimTextContainer grid-item">
+                <p class="claimText">{{ claimText }}</p>
+                <!-- Have dates names and other stuff -->
+            </div>
+        </div>
+    </div>
+</body>
+
+<style>
+    .userProfile {
+        vertical-align: top;
+        grid-area: profile;
+    }
+
+    .userInfo {
+        text-align: center;
+        margin: 5px;
+    }
+
+    .claimTextContainer {
+        border: 3px solid rgb(54, 54, 54);
+        vertical-align: top;
+        margin: 20px;
+        padding: 20px;
+        width: 30%;
+    }
+
+    .claimText {
+        color: white;
+        vertical-align: middle;
+        font-size: 15px;
+        margin: auto;
+        grid-area: text;
+    }
+
+    .grid-container {
+        display: grid;
+        grid-template-columns: 20% 80%;
+        grid-template-areas:
+            'profile text text text';
+        gap: 10px;
+    }
+
+    .grid-item {
+        border: 5px solid rgba(0, 0, 0, 0.8);
+    }
+</style>
+
+</html>

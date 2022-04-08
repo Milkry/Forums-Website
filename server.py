@@ -1,3 +1,4 @@
+from getpass import getuser
 from flask import Flask, jsonify, redirect, session, url_for, render_template
 import sqlite3
 import hashlib
@@ -103,7 +104,7 @@ def displayTopic(topicId):
 
 
 # Creates a topic
-@app.route('/topic/create/<topicName>', methods=["POST"])
+@app.route('/new/topic/<topicName>', methods=["POST"])
 def createTopic(topicName):
     if isUserLoggedIn():
         db = sqlite3.connect(PATH)
@@ -119,22 +120,56 @@ def createTopic(topicName):
 # View a claim
 @app.route('/<topicId>/<claimId>', methods=["GET"])
 def displayClaim(topicId, claimId):
-    return NotFoundMessage("Claim")
+    if not isTopicIdValid(topicId):
+        return NotFoundMessage("Topic")
+    if not isClaimIdValid(claimId):
+        return NotFoundMessage("Claim")
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    claim = cursor.execute(
+        "select postingUser, text from claim where claimID=?", (claimId,))
+    for row in claim:
+        userId = row[0]
+        claimText = row[1]
+    username = getUsername(userId)
+    topicName = getTopicName(topicId)
+    db.close()
+    return render_template("Claim.html", topicName=topicName, username=username, claimText=claimText)
 
 
 # Page to write and submit your claim
-@app.route('/<topicId>/claim/new', methods=["GET"])
+@app.route('/<topicId>/new/claim', methods=["GET"])
 def newClaim(topicId):
     if isTopicIdValid(topicId):
         if isUserLoggedIn():
-            return render_template("NewClaim.html", topicId=topicId)
+            topicName = getTopicName(topicId)
+            return render_template("NewClaim.html", topicId=topicId, topicName=topicName, userId=getUserIDFromSession())
         else:
             return redirect(url_for("homepage"))
     return NotFound()
 
 
 # Creates a claim
-# app.route...
+@app.route('/<topicId>/<userId>/<claimText>', methods=["POST"])
+def createClaim(topicId, userId, claimText):
+    if int(getUserIDFromSession()) != int(userId):
+        return NotFoundMessage("UserId")
+    if not isTopicIdValid(topicId):
+        return NotFoundMessage("Topic")
+    print(claimText)
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    cursor.execute("insert into claim (topic, postingUser, creationTime, updateTime, text) values (?, ?, 0, 0, ?)",
+                   (topicId, userId, claimText,))
+    claim = cursor.execute(
+        "select claimID from claim where text=?", (claimText,))
+    for row in claim:
+        claimId = row[0]
+    if not claimId:
+        return 'ClaimId was not initialized.'
+    db.commit()
+    db.close()
+    return jsonify({"topicId": topicId, "claimId": claimId})
 
 
 ####################################################################
@@ -210,3 +245,16 @@ def getTopicName(Id):
         return row[0]
     db.close()
     return "NULL"
+
+
+# Returns true if the claimId given exists in the database and false if not
+def isClaimIdValid(Id):
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    claim = cursor.execute("select * from claim where claimID=?", (Id,))
+    for row in claim:
+        db.close()
+        return True
+    db.close()
+    return False
+####################################################################

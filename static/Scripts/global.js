@@ -1,7 +1,9 @@
 "use strict";
 
 var mutex = null;
+var box = null;
 var notificationInterval = 3000; // milliseconds
+var disabledButtonsColor = disabledButtonsColor;
 
 function load() {
     mutex = false;
@@ -38,11 +40,10 @@ function register(e) {
     if (mutex) return;
     mutex = true;
 
-    var box;
     let button = document.getElementById("proceedButton");
-    let buttonColor = button.style.background;
+    let originalButtonColor = button.style.background;
     button.disabled = true;
-    button.style.background = "gray";
+    button.style.background = disabledButtonsColor;
     let data =
     {
         username: $("#registerUsername").val(),
@@ -80,7 +81,7 @@ function register(e) {
         }
         document.getElementById("registerForm").reset(); // use a jquery instead here
         button.disabled = false;
-        button.style.background = buttonColor; // Restores the original color
+        button.style.background = originalButtonColor; // Restores the original color
         overlayOff("overlayRegister"); // Close the form
         mutex = false;
     }
@@ -93,11 +94,10 @@ function login(e) {
     if (mutex) return;
     mutex = true;
 
-    var box;
     let button = document.getElementById("proceedButton");
-    let buttonColor = button.style.background;
+    let originalButtonColor = button.style.background;
     button.disabled = true;
-    button.style.background = "gray";
+    button.style.background = disabledButtonsColor;
     let data =
     {
         username: $("#loginUsername").val(),
@@ -140,7 +140,7 @@ function login(e) {
         }
         document.getElementById("loginForm").reset(); // use a jquery instead here
         button.disabled = false;
-        button.style.background = buttonColor; // Restores the original color
+        button.style.background = originalButtonColor; // Restores the original color
         overlayOff("overlayLogin"); // Close the form
         mutex = false;
     }
@@ -153,18 +153,17 @@ function createTopic(e) {
     if (mutex) return;
     mutex = true;
 
-    var box;
     let button = document.getElementById("proceedButton");
-    let buttonColor = button.style.background;
+    let originalButtonColor = button.style.background;
     button.disabled = true;
-    button.style.background = "gray";
+    button.style.background = disabledButtonsColor;
     let data =
     {
         topicName: $("#topicName").val(),
     };
 
     var request = new XMLHttpRequest();
-    request.open("POST", "/topic/create/" + data.topicName, true);
+    request.open("POST", "/new/topic/" + data.topicName, true);
     request.onload = () => {
         switch (request.response) {
             case 'TOPIC_CREATED':
@@ -187,52 +186,40 @@ function createTopic(e) {
         }
         document.getElementById("createTopic").reset(); // use a jquery instead here
         button.disabled = false;
-        button.style.background = buttonColor; // Restores the original color
+        button.style.background = originalButtonColor; // Restores the original color
         overlayOff("overlayTopic"); // Close the form
         mutex = false;
     }
     request.send();
 }
 
-function createClaim() {
+function createClaim(e, topicId, userId) {
+    e.preventDefault();
+
     if (mutex) return;
     mutex = true;
 
-    var box;
     let button = document.getElementById("proceedButton");
-    let buttonColor = button.style.background;
+    let originalButtonColor = button.style.background;
     button.disabled = true;
-    button.style.background = "gray";
+    button.style.background = disabledButtonsColor;
     let data =
     {
         claimText: $("#claimText").val(),
+        topicId: topicId,
+        userId: userId
     };
 
+    console.log(data.claimText);
+
     var request = new XMLHttpRequest();
-    request.open("POST", "/" + data.claimText, true);
+    request.open("POST", "/" + data.topicId + "/" + data.userId + "/" + data.claimText, true);
     request.onload = () => {
-        switch (request.response) {
-            case 'CLAIM_CREATED':
-                //box = document.getElementById("loginSuccessfulBox").style;
-                //box.display = "block";
-                location.href = '/';
-                break;
-
-            case 'MISSING_DATA':
-                box = document.getElementById("missingDataBox").style;
-                box.display = "block";
-                setTimeout(() => box.display = "none", notificationInterval);
-                break;
-
-            default:
-                box = document.getElementById("unknownErrorBox").style;
-                box.display = "block";
-                setTimeout(() => box.display = "none", notificationInterval);
-                break;
-        }
+        let result = JSON.parse(request.response);
         button.disabled = false;
-        button.style.background = buttonColor; // Restores the original color
+        button.style.background = originalButtonColor; // Restores the original color
         mutex = false;
+        location.href = '/' + result.topicId + '/' + result.claimId;
     }
     request.send();
 }

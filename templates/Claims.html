@@ -18,7 +18,7 @@
         <label class="searchLabel"><i class="fa fa-search" aria-hidden="true"></i></label>
         <input class="searchField" type="search" placeholder="Search..." id="search" />
         {% if loggedIn is defined %}
-        <button class="btn" onclick="location.href='/{{ topicId }}/claim/new'">New Claim</button>
+        <button class="btn" onclick="location.href='/{{ topicId }}/new/claim'">New Claim</button>
         {% endif %}
 
         {% for claim in claims %}

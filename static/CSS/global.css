@@ -117,14 +117,6 @@ label {
     margin: 5px;
 }
 
-.createTopicContainer {
-    background-color: rgb(36, 36, 36);
-    border: 2px solid whitesmoke;
-    margin: 20px;
-    padding: 30px;
-    width: 25%;
-}
-
 .centerDiv {
     position: absolute;
     margin: 0;

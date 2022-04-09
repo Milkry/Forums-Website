@@ -22,7 +22,7 @@
         {% endif %}
 
         {% for claim in claims %}
-        <div onclick="location.href='/{{ topicId }}/{{ loop.index }}'" class="claimContainer">
+        <div onclick="location.href='/{{ topicId }}/{{ claim }}'" class="claimContainer">
             <hr>
             <i class="fa fa-commenting-o fa-4x claimIcon" aria-hidden="true"></i>
             <span class="claim">{{ claim }}</span>

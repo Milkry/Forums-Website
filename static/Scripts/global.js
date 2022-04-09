@@ -192,34 +192,3 @@ function createTopic(e) {
     }
     request.send();
 }
-
-function createClaim(e, topicId, userId) {
-    e.preventDefault();
-
-    if (mutex) return;
-    mutex = true;
-
-    let button = document.getElementById("proceedButton");
-    let originalButtonColor = button.style.background;
-    button.disabled = true;
-    button.style.background = disabledButtonsColor;
-    let data =
-    {
-        claimText: $("#claimText").val(),
-        topicId: topicId,
-        userId: userId
-    };
-
-    console.log(data.claimText);
-
-    var request = new XMLHttpRequest();
-    request.open("POST", "/" + data.topicId + "/" + data.userId + "/" + data.claimText, true);
-    request.onload = () => {
-        let result = JSON.parse(request.response);
-        button.disabled = false;
-        button.style.background = originalButtonColor; // Restores the original color
-        mutex = false;
-        location.href = '/' + result.topicId + '/' + result.claimId;
-    }
-    request.send();
-}

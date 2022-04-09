@@ -14,34 +14,55 @@
 
 <body>
     <div class="forumsContainer">
-        <div id="forumHierarchy">{{ topicName }} >> {{ username }}</div>
+        <div id="forumHierarchy"><a href="/{{ topicId }}">{{ topicName }}</a> > {{ username }}
+            {% if loggedIn is defined %}
+            <button class="btn" style="float: right;" onclick="location.href=''">Reply To Claim</button>
+            {% endif %}
+        </div>
         <div class="grid-container">
-            <p class="userInfo"><img class="userProfile grid-item" width="50%" height="50%"
-                    src="{{ url_for('static', filename='Resources/Images/default_user.png') }}">
-                {{ username }}</p>
-            <div class="claimTextContainer grid-item">
+            <div class="userInfo">
+                <img class="userProfile" src="{{ url_for('static', filename='Resources/Images/default_user.png') }}">
+                <p><b>{{ username }}</b></p>
+                {% if isAdmin == True %}
+                <span style="background-color: rgb(161, 0, 0); padding: 10px; border-radius: 10px;"><b>Admin</b></span>
+                {% endif %}
+                <p>Posted: <i>{{ creationTime }}</i></p>
+            </div>
+
+            <div style="border-radius: 15px; width: auto;" class="claimTextContainer">
                 <p class="claimText">{{ claimText }}</p>
                 <!-- Have dates names and other stuff -->
             </div>
         </div>
+        {% for reply in replies %}
+        <!-- Display replies -->
+        {% endfor %}
     </div>
 </body>
 
 <style>
     .userProfile {
         vertical-align: top;
-        grid-area: profile;
+        margin-top: 15px;
+        border: 5px solid whitesmoke;
+        max-width: 75px;
+        max-height: 75px;
+        width: auto;
+        height: auto;
     }
 
     .userInfo {
+        color: white;
         text-align: center;
         margin: 5px;
     }
 
     .claimTextContainer {
-        border: 3px solid rgb(54, 54, 54);
+        border: 3px solid whitesmoke;
         vertical-align: top;
-        margin: 20px;
+        margin-top: 20px;
+        margin-right: 20px;
+        margin-bottom: 20px;
         padding: 20px;
         width: 30%;
     }
@@ -49,21 +70,16 @@
     .claimText {
         color: white;
         vertical-align: middle;
-        font-size: 15px;
+        font-size: 16px;
         margin: auto;
-        grid-area: text;
+        white-space: pre-wrap;
+        overflow-wrap: break-word;
     }
 
     .grid-container {
+        border: 3px solid whitesmoke;
         display: grid;
         grid-template-columns: 20% 80%;
-        grid-template-areas:
-            'profile text text text';
-        gap: 10px;
-    }
-
-    .grid-item {
-        border: 5px solid rgba(0, 0, 0, 0.8);
     }
 </style>
 

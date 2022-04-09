@@ -124,6 +124,9 @@ def displayClaim(topicId, claimId):
         return NotFoundMessage("Topic")
     if not isClaimIdValid(claimId):
         return NotFoundMessage("Claim")
+    if not isTopicRelatedToClaim(topicId, claimId):
+        return NotFoundMessage("Claim is not related to that topic")
+
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
     claim = cursor.execute(
@@ -255,6 +258,20 @@ def isClaimIdValid(Id):
     for row in claim:
         db.close()
         return True
+    db.close()
+    return False
+
+
+# Returns true if the topic is related to a claim and false if not
+def isTopicRelatedToClaim(topicId, claimId):
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    claim = cursor.execute(
+        "select topic from claim where claimId=?", (claimId,))
+    for row in claim:
+        if int(topicId) == row[0]:
+            db.close()
+            return True
     db.close()
     return False
 ####################################################################

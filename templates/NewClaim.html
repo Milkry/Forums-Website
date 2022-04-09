@@ -16,7 +16,7 @@
     <!-- Create Claim -->
     <div class="forumsContainer">
         <div id="forumHierarchy"><b>Posting at:</b> {{ topicName }}</div>
-        <form onsubmit="createClaim(event, '{{ topicId }}', '{{ userId }}')">
+        <form action="/{{ topicId }}/{{ userId }}/new" method="POST">
             <div id="inputFields">
                 <hr class="hrForm">
                 <textarea rows="15" placeholder="Describe your claim (minimum 15 characters)..." minlength="15"
@@ -30,8 +30,8 @@
 
 <style>
     textarea {
-        width: 95%;
         resize: vertical;
+        width: 95%;
     }
 </style>
 

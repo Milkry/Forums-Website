@@ -9,16 +9,16 @@
         href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <script src="{{ url_for('static', filename='Scripts/global.js') }}"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <title>Claims</title>
+    <title>{% block title %}Topic: {{ topicName }}{% endblock %}</title>
 </head>
 
 <body>
     <div class="forumsContainer">
-        <div id="forumHierarchy"><b>Topic:</b> {{ topicName }}</div>
+        <div id="forumHierarchy"><a href="/">Topic</a>: {{ topicName }}</div>
         <label class="searchLabel"><i class="fa fa-search" aria-hidden="true"></i></label>
         <input class="searchField" type="search" placeholder="Search..." id="search" />
         {% if loggedIn is defined %}
-        <button class="btn" onclick="location.href='/{{ topicId }}/new/claim'">New Claim</button>
+        <button class="btn" style="float: right;" onclick="location.href='/{{ topicId }}/new/claim'">New Claim</button>
         {% endif %}
 
         {% for claim in claims %}
@@ -36,6 +36,12 @@
     .claimContainer {
         margin: 20px;
         cursor: pointer;
+    }
+
+    .claimContainer:active,
+    .claimContainer:hover {
+        background-color: rgb(68, 68, 68);
+        border-radius: 30px;
     }
 
     .claimIcon {

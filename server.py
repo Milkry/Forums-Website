@@ -1,5 +1,4 @@
-from getpass import getuser
-from flask import Flask, jsonify, redirect, session, url_for, render_template
+from flask import Flask, jsonify, redirect, session, url_for, render_template, request
 import sqlite3
 import hashlib
 
@@ -30,7 +29,7 @@ def register(username, password):
     if username and password and not isUserLoggedIn():
         db = sqlite3.connect(PATH)
         cursor = db.cursor()
-        # Determine if the account exists
+        # Determine if the account already exists
         accoundFound = False
         account = cursor.execute(
             "select userID from user where userName=?", (username,))
@@ -41,7 +40,7 @@ def register(username, password):
             return 'USER_EXISTS'
         else:
             cursor.execute(
-                "insert into user (userName, passwordHash, isAdmin, creationTime, lastVisit) values (?, ?, 0, 1, 1)", (username, password,))
+                "insert into user (userName, passwordHash, isAdmin, creationTime, lastVisit) values (?, ?, 0, julianday('now'), 0)", (username, hashPassword(password),))
             newAccount = cursor.execute(
                 "select userID from user where userName=?", (username,))
             for row in newAccount:
@@ -61,7 +60,7 @@ def login(username, password):
             "select userID, passwordHash from user where userName=?", (username,))
         # If the for loop doesn't get executed, then the account doesn't exist
         for user in account:
-            if user[1] == password:
+            if user[1] == hashPassword(password):
                 session["userID"] = user[0]
                 db.close()
                 return 'LOGIN_SUCCESSFUL'
@@ -103,13 +102,13 @@ def displayTopic(topicId):
         return NotFoundMessage("Topic")
 
 
-# Creates a topic
+# When submitting a topic
 @app.route('/new/topic/<topicName>', methods=["POST"])
 def createTopic(topicName):
     if isUserLoggedIn():
         db = sqlite3.connect(PATH)
         cursor = db.cursor()
-        cursor.execute("insert into topic (topicName, postingUser, creationTime, updateTime) values (?, ?, 0, 0)",
+        cursor.execute("insert into topic (topicName, postingUser, creationTime, updateTime) values (?, ?, julianday('now'), 0)",
                        (topicName, getUserIDFromSession(),))
         db.commit()
         db.close()
@@ -130,54 +129,65 @@ def displayClaim(topicId, claimId):
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
     claim = cursor.execute(
-        "select postingUser, text from claim where claimID=?", (claimId,))
+        "select postingUser, text, creationTime from claim where claimID=?", (claimId,))
     for row in claim:
         userId = row[0]
         claimText = row[1]
+        creationTime = convertJulianTime(row[2])
     username = getUsername(userId)
     topicName = getTopicName(topicId)
     db.close()
-    return render_template("Claim.html", topicName=topicName, username=username, claimText=claimText)
+    return render_template("Claim.html", topicId=topicId, topicName=topicName, username=username, claimText=claimText, creationTime=creationTime, isAdmin=isAdmin(userId), loggedIn=True)
 
 
 # Page to write and submit your claim
 @app.route('/<topicId>/new/claim', methods=["GET"])
-def newClaim(topicId):
+def newClaimPage(topicId):
     if isTopicIdValid(topicId):
         if isUserLoggedIn():
             topicName = getTopicName(topicId)
             return render_template("NewClaim.html", topicId=topicId, topicName=topicName, userId=getUserIDFromSession())
         else:
+            # change it so it redirects you to login instead [CHANGE_NEEDED]
             return redirect(url_for("homepage"))
-    return NotFound()
+    return NotFoundMessage("Topic")
 
 
-# Creates a claim
-@app.route('/<topicId>/<userId>/<claimText>', methods=["POST"])
-def createClaim(topicId, userId, claimText):
+# When submitting a claim
+@app.route('/<topicId>/<userId>/new', methods=["POST"])
+def createClaim(topicId, userId):
+    # This might need some testing, if a userid is not returned this might break the server? [CHANGE_NEEDED]
     if int(getUserIDFromSession()) != int(userId):
         return NotFoundMessage("UserId")
     if not isTopicIdValid(topicId):
         return NotFoundMessage("Topic")
-    print(claimText)
+
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
-    cursor.execute("insert into claim (topic, postingUser, creationTime, updateTime, text) values (?, ?, 0, 0, ?)",
-                   (topicId, userId, claimText,))
+    cursor.execute("insert into claim (topic, postingUser, creationTime, updateTime, text) values (?, ?, julianday('now'), 0, ?)",
+                   (topicId, userId, request.form["claimText"],))
     claim = cursor.execute(
-        "select claimID from claim where text=?", (claimText,))
+        "select claimID from claim where text=?", (request.form["claimText"],))  # Instead of searching the database using the claimText, use the creationTime [CHANGE_NEEDED]
     for row in claim:
         claimId = row[0]
     if not claimId:
+        # Handle the internal server error better here [CHANGE_NEEDED]
+        db.close()
         return 'ClaimId was not initialized.'
     db.commit()
     db.close()
-    return jsonify({"topicId": topicId, "claimId": claimId})
+    updateTimeTopic(topicId)
+    return redirect("/" + str(topicId) + "/" + str(claimId))
 
 
 ####################################################################
 ######################### HELPER FUNCTIONS #########################
 ####################################################################
+
+# Returns a hashed password
+def hashPassword(password):
+    return hashlib.sha512(password.encode('utf-8')).hexdigest()
+
 
 # Returns true if the user is currently logged in and false if not
 def isUserLoggedIn():
@@ -192,6 +202,7 @@ def getUserIDFromSession():
 
 
 # Returns the username of the user when logged in
+# Instead of searching the database for the username, save it in the session and get it from there [CHANGE_NEEDED]
 def getUsername(id):
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
@@ -201,6 +212,20 @@ def getUsername(id):
         username = row[0]
     db.close()
     return username
+
+
+# Returns true if the user is an admin and false if not
+def isAdmin(id):
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    user = cursor.execute(
+        "select isAdmin from user where userID=?", (id,))
+    for row in user:
+        if row[0] == True:
+            db.close()
+            return True
+        db.close()
+        return False
 
 
 # Returns a json string with all the topics in the database
@@ -226,10 +251,10 @@ def NotFound():
 
 
 # Returns true if the topicId given exists in the database and false if not
-def isTopicIdValid(Id):
+def isTopicIdValid(id):
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
-    topic = cursor.execute("select * from topic where topicID=?", (Id,))
+    topic = cursor.execute("select * from topic where topicID=?", (id,))
     for row in topic:
         db.close()
         return True
@@ -238,11 +263,11 @@ def isTopicIdValid(Id):
 
 
 # Returns topic name based on the topicId
-def getTopicName(Id):
+def getTopicName(id):
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
     topic = cursor.execute(
-        "select topicName from topic where topicID=?", (Id,))
+        "select topicName from topic where topicID=?", (id,))
     for row in topic:
         db.close()
         return row[0]
@@ -250,11 +275,21 @@ def getTopicName(Id):
     return "NULL"
 
 
-# Returns true if the claimId given exists in the database and false if not
-def isClaimIdValid(Id):
+# Updates the "updateTime" column of a specific topic
+def updateTimeTopic(topicId):
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
-    claim = cursor.execute("select * from claim where claimID=?", (Id,))
+    cursor.execute(
+        "update topic set updateTime=julianday('now') where topicID=?", (topicId,))
+    db.commit()
+    db.close()
+
+
+# Returns true if the claimId given exists in the database and false if not
+def isClaimIdValid(id):
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    claim = cursor.execute("select * from claim where claimID=?", (id,))
     for row in claim:
         db.close()
         return True
@@ -274,4 +309,13 @@ def isTopicRelatedToClaim(topicId, claimId):
             return True
     db.close()
     return False
+
+
+# Converts julian time to regular time and returns it
+def convertJulianTime(julianTime):
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    time = cursor.execute("select datetime(?)", (julianTime,))
+    for row in time:
+        return row[0]
 ####################################################################

@@ -18,16 +18,16 @@
         <button id="homeBtn" style="float: left;" onclick="location.href='/'" class="blackbarButtons"><i
                 class="fa fa-home fa-lg" aria-hidden="true"></i></button>
         {% if username is defined %}
-        <span style="color: white;">Hello, <b>{{ username }}</b>!</span>
+        <span style="color: var(--text);">Hello, <b>{{ username }}</b>!</span>
         {% endif %}
         {% if loggedIn is defined %}
         <button id="logoutBtn" style="display: inline-block;" onclick="location.href='/logout'"
             class="blackbarButtons"><i class="fa fa-sign-out fa-lg" aria-hidden="true"></i></button>
         {% else %}
         <button id="registerBtn" style="display: inline-block;" onclick="overlayOn('overlayRegister')"
-            class="blackbarButtons">Register</button>
+            class="blackbarButtons"><b>Register</b></button>
         <button id="loginBtn" style="display: inline-block;" onclick="overlayOn('overlayLogin')"
-            class="blackbarButtons">Login</button>
+            class="blackbarButtons"><b>Login</b></button>
         {% endif %}
     </div>
 
@@ -92,7 +92,7 @@
                     <input type="checkbox" name="TermsAndPrivacy" id="TermsAndPrivacy" required></input>
                     <label>By creating an account you agree to our <a href="#">Terms & Privacy</a>.</label>
                 </div>
-                <button type="submit" class="proceedButton" id="proceedButton">Create an account</button>
+                <button type="submit" class="formBtn" id="formBtn">Create an account</button>
             </div>
         </form>
     </div>
@@ -111,7 +111,7 @@
                     <input type="password" placeholder="Password" name="loginPassword" id="loginPassword" required>
                     <hr class="hrForm">
                 </div>
-                <button type="submit" class="proceedButton" id="proceedButton">Login</button>
+                <button type="submit" class="formBtn" id="formBtn">Login</button>
             </div>
         </form>
     </div>
@@ -128,7 +128,7 @@
                     <input type="text" placeholder="Topic Name" name="topicName" id="topicName" required>
                     <hr class="hrForm">
                 </div>
-                <button type="submit" class="proceedButton" id="proceedButton">Create</button>
+                <button type="submit" class="formBtn" id="formBtn">Create</button>
             </div>
         </form>
     </div>
@@ -140,13 +140,17 @@
     </div>
 
     <!-- Topics Section -->
+    <!-- SORT THEM BASED ON RECENTLY UPDATED TOPICS [CHANGE_NEEDED] -->
     <div class="forumsContainer">
-        <label class="searchLabel"><i class="fa fa-search" aria-hidden="true"></i></label>
-        <input class="searchField" type="search" placeholder="Search..." id="search" />
-        {% if loggedIn is defined %}
-        <button style="float: right;" class="btn" onclick="overlayOn('overlayTopic')">New Topic</button>
-        {% endif %}
-
+        <div class="flex-container-space-between">
+            <div>
+                <label class="searchLabel"><i class="fa fa-search" aria-hidden="true"></i></label>
+                <input class="searchField" type="search" placeholder="Search..." id="search" />
+            </div>
+            {% if loggedIn is defined %}
+            <button class="btn" onclick="overlayOn('overlayTopic')">New Topic</button>
+            {% endif %}
+        </div>
         {% for topic in topics %}
         <div onclick="location.href='/{{ loop.index }}'" class="topicContainer">
             <hr>
@@ -178,7 +182,7 @@
     }
 
     .createTopicContainer {
-        background-color: rgb(36, 36, 36);
+        background-color: var(--form);
         border: 2px solid whitesmoke;
         margin: 20px;
         padding: 30px;
@@ -186,24 +190,24 @@
     }
 
     .topicContainer {
-        margin: 20px;
         cursor: pointer;
+        margin: 20px;
     }
 
     .topicContainer:active,
     .topicContainer:hover {
-        background-color: rgb(68, 68, 68);
+        background-color: var(--highlight);
         border-radius: 30px;
     }
 
     .topicIcon {
-        color: white;
+        color: var(--primary);
         vertical-align: middle;
         margin-left: 40px;
     }
 
     .topic {
-        color: white;
+        color: var(--text);
         padding: 10px;
         margin-right: 10px;
         font-size: 25px;
@@ -222,10 +226,11 @@
     }
 
     .accountContainer {
-        background-color: rgb(36, 36, 36);
-        border: 2px solid whitesmoke;
-        margin: 20px;
+        background-color: var(--form);
+        border: 5px solid black;
+        border-radius: 20px;
         float: right;
+        margin: 20px;
         height: 100%;
         padding: 30px;
         width: 25%;

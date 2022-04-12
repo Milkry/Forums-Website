@@ -1,6 +1,19 @@
 /*
- * A global CSS file used by all pages
+ * A global CSS file used by all pages #74DE21
  */
+
+ :root {
+     --primary: #8B21DE;
+     --secondary: #6acc1f;
+     --background: rgb(219, 219, 219);
+     --background2: whitesmoke;
+     --text: black;
+     --icon: black;
+     --form: whitesmoke;
+     --highlight: rgb(180, 180, 180);
+     --border: rgb(180, 180, 180);
+     --link: dodgerblue;
+ }
 
 /* ###################### CSS IDS ###################### */
 #overlayRegister {
@@ -20,9 +33,9 @@
 }
 
 #forumHierarchy {
-    color: white;
+    color: var(--text);
+    vertical-align: middle;
     margin: 20px;
-    margin-bottom: 30px;
     font-size: 30px;
 }
 /* ##################################################### */
@@ -32,18 +45,19 @@
 /* ###################### ELEMENTS ##################### */
 body {
     font-family: Helvetica, sans-serif;
-    background-color: #2E2A2E;
+    background-color: var(--background);
     margin: 0;
     padding: 0;
 }
 
-h1, h2, h3, h4, h5, h6, p {
-    color: white;
+h1, h2, h3, h4, h5, h6, p, span, small {
+    color: var(--text);
 }
 
 /* For links */
 a {
-    color: dodgerblue;
+    color: var(--link);
+    cursor: pointer;
 }
 
 hr {
@@ -55,7 +69,7 @@ hr {
 
 input[type=text],
 input[type=password] {
-    background: #f1f1f1;
+    background-color: rgb(224, 224, 224);
     display: inline-block;
     border: none;
     width: 90%;
@@ -68,12 +82,8 @@ input[type=password] {
 
 input[type=text]:focus,
 input[type=password]:focus {
-    background-color: #ddd;
+    background-color: rgb(207, 207, 207);
     outline: none;
-}
-
-label {
-    color: white;
 }
 /* ##################################################### */
 
@@ -94,25 +104,26 @@ label {
 }
 
 .forumsContainer {
-    background-color: #4d4d4d;
-    padding: 20px;
+    background-color: var(--background2);
+    border: 5px solid var(--border);
     border-radius: 25px;
+    padding: 20px;
     margin-top: 40px;
     margin-left: 15%;
     margin-right: 15%;
 }
 
 .searchField {
-    background-color: white;
+    background-color: var(--form);
     vertical-align: middle;
     border: none;
-    width: 15%;
+    width: auto;
     margin: 5px;
-    padding: 5px;
+    padding: 10px;
 }
 
 .searchLabel {
-    color: white;
+    color: var(--icon);
     vertical-align: middle;
     margin: 5px;
 }
@@ -126,7 +137,7 @@ label {
 }
 
 .exitOverlayButton {
-    color: white;
+    color: var(--icon);
     background-color: transparent;
     border: none;
     float: right;
@@ -141,17 +152,19 @@ label {
 }
 
 .blackbarContainer {
-    background-color: rgb(80, 80, 80);
+    background-color: var(--background2);
     text-align: right;
     display: block;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
 }
 
 .blackbarButtons {
-    color: white;
+    color: var(--text);
     background-color: transparent;
     border: none;
     cursor: pointer;
-    padding: 15px;
+    padding: 20px;
     font-size: 16px;
     opacity: 0.85;
 }
@@ -159,16 +172,23 @@ label {
 .blackbarButtons:active,
 .blackbarButtons:hover {
     background-color: rgba(190, 190, 190, 0.25);
-    border-radius: 10px;
+    border-radius: 20px;
     opacity: 1;
 }
 
+.forumHierarchyButton {
+    color: var(--icon);
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+}
+
 .btn {
-    background-color: purple;
-    color: white;
+    background-color: var(--secondary);
+    color: var(--text);
     vertical-align: middle;
     cursor: pointer;
-    border-radius: 10px;
     margin: 2px;
     padding: 10px;
     opacity: 0.85;
@@ -179,8 +199,8 @@ label {
     opacity: 1;
 }
 
-.proceedButton {
-    background-color: purple;
+.formBtn {
+    background-color: var(--primary);
     color: white;
     width: 100%;
     padding: 20px;
@@ -188,8 +208,28 @@ label {
     cursor: pointer;
 }
 
-.proceedButton:active,
-.proceedButton:hover {
+.formBtn:active,
+.formBtn:hover {
     opacity: 1;
+}
+
+.formBtnCancel {
+    background-color: transparent;
+    color: var(--text);
+    width: 100%;
+    padding: 20px;
+    opacity: 0.9;
+    cursor: pointer;
+}
+
+.formBtnCancel:active,
+.formBtnCancel:hover {
+    opacity: 1;
+}
+
+.flex-container-space-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 /* ##################################################### */

@@ -9,42 +9,201 @@
         href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <script src="{{ url_for('static', filename='Scripts/global.js') }}"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <title>{% block title %}Claim: {{ username }}{% endblock %}</title>
+    <title>{% block title %}Claim: {{ claim.Username }}{% endblock %}</title>
 </head>
+
+<script>
+    function showReplyForm(id) {
+        $('#' + id).show();
+        $('#' + id)[0].scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+            inline: 'center'
+        });
+    }
+
+    function hideReplyForm(id) {
+        $('#' + id).hide();
+    }
+
+    function moveTo(id) {
+        $('#' + id)[0].scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+        });
+        var border = $('#' + id).css('border');
+        $('#' + id).css('border', '5px dashed yellow');
+        setTimeout(() => $('#' + id).css('border', border), 2000);
+    }
+</script>
 
 <body>
     <div class="forumsContainer">
-        <div id="forumHierarchy"><a href="/{{ topicId }}">{{ topicName }}</a> > {{ username }}
-            {% if loggedIn is defined %}
-            <button class="btn" style="float: right;" onclick="location.href=''">Reply To Claim</button>
-            {% endif %}
-        </div>
-        <div class="grid-container">
-            <div class="userInfo">
-                <img class="userProfile" src="{{ url_for('static', filename='Resources/Images/default_user.png') }}">
-                <p><b>{{ username }}</b></p>
-                {% if isAdmin == True %}
-                <span style="background-color: rgb(161, 0, 0); padding: 10px; border-radius: 10px;"><b>Admin</b></span>
+        <!-- Hierarchy -->
+        <div id="forumHierarchy" class="flex-container-space-between">
+            <div>
+                <button id="homeBtn" onclick="location.href='/'" class="forumHierarchyButton">
+                    <i class="fa fa-home fa-2x" aria-hidden="true"></i>
+                </button>
+                <i class="fa fa-long-arrow-right" aria-hidden="true"></i>
+                <span style="cursor: pointer;" onclick="location.href='/{{ topic.TopicId }}'">{{ topic.TopicName
+                    }}</span>
+                <i class="fa fa-long-arrow-right" aria-hidden="true"></i>
+                <span>{{ claim.Username }}</span>
+            </div>
+            <div style="background-color: var(primary); border-radius: 15px; padding: 10px;">
+                <span style="color: black; font-size: 20px;">Last Updated: <u>{{ claim.LastUpdateTime }}</u></span>
+                {% if loggedIn == True %}
+                <button class="btn" onclick="moveTo('ReplyToClaimContainer')">Reply To Claim</button>
                 {% endif %}
-                <p>Posted: <i>{{ creationTime }}</i></p>
-            </div>
-
-            <div style="border-radius: 15px; width: auto;" class="claimTextContainer">
-                <p class="claimText">{{ claimText }}</p>
-                <!-- Have dates names and other stuff -->
             </div>
         </div>
+
+        <!-- Original Claim -->
+        <!-- Make a mark to show easily who the OP is [CHANGE_NEEDED] -->
+        <div id="{{ claim.ClaimId }}" class="grid-container">
+            <div class="userInfo">
+                <p><b>{{ claim.Username }}</b></p>
+                <img class="userProfile" src="{{ url_for('static', filename='Resources/Images/default_user.png') }}">
+                {% if claim.IsAdmin == True %}
+                <p class="adminLabel"><b>Admin</b></p>
+                {% endif %}
+                <p>Join Date: {{ claim.JoinDate }}</p>
+                <p>Posted: {{ claim.ClaimPostDate }}</p>
+                <p>Total Posts: {{ claim.TotalPosts }}</p>
+            </div>
+            <div style="border-radius: 15px; width: auto;" class="claimTextContainer">
+                <p class="claimText">{{ claim.ClaimText }}</p>
+            </div>
+        </div>
+
+        <!-- Make a statistics bar [CHANGE_NEEDED] -->
+        <div>
+            <h3>Statistics</h3>
+            <div>
+                <span>{{ replies|length }}</span>
+            </div>
+        </div>
+
+        <!-- Replies -->
         {% for reply in replies %}
-        <!-- Display replies -->
+        <div id="reply_{{ reply.Id }}" style="margin-left: 30px; margin-top: 30px;" class="grid-container">
+            <div class="userInfo">
+                <p><b>{{ reply.Username }} {{ reply.Id }}</b></p>
+                <img class="userProfile" src="{{ url_for('static', filename='Resources/Images/default_user.png') }}">
+                {% if reply.IsAdmin == True %}
+                <p class="adminLabel"><b>Admin</b></p>
+                {% endif %}
+                <p>Join Date:{{ reply.JoinDate }}</p>
+                <p>Posted: {{ reply.ReplyPostDate }}</p>
+                <p>Total Posts: {{ reply.TotalPosts }}</p>
+            </div>
+            <div style="border-radius: 15px; width: auto;" class="claimTextContainer">
+                <div style="margin-bottom: 10px;" class="flex-container-space-between">
+                    {% if reply.isReplyToReply == True %}
+                    <span class="replyingTo">Replying To: <a onclick="moveTo('reply_{{ reply.ReplyingToId }}')">{{
+                            reply.ReplyingToUsername }}</a></span>
+                    {% else %}
+                    <span class="replyingTo">Replying To: <a onclick="moveTo('{{ claim.ClaimId }}')">{{
+                            claim.Username }}</a></span>
+                    {% endif %}
+                    {% if loggedIn == True %}
+                    <button class="btn" onclick="showReplyForm('replyTo_{{ reply.Id }}')">Reply</button>
+                    {% endif %}
+                </div>
+                {% if reply.isReplyToReply == True %}
+                <div class="quoteReply">{{ reply.ReplyingToText }}</div>
+                {% endif %}
+                <p class="claimText">{{ reply.Text }}</p>
+            </div>
+        </div>
+        <!-- Submit a Reply To a Reply Form -->
+        <div id="replyTo_{{ reply.Id }}" class="replyToReplyContainer">
+            <form action="/{{ topic.TopicId }}/{{ claim.ClaimId }}/new/reply/{{ reply.Id }}" method="POST">
+                <div id="inputFields">
+                    <textarea style="margin-top: 5px;" rows="10"
+                        placeholder="You're replying to {{ reply.Username }}..." name="replyToReplyText"
+                        id="replyToReplyText" required></textarea>
+                </div>
+                <div style="margin: 10px 25px 10px 25px;" class="flex-container-space-between">
+                    <select style="padding: 5px;" name="replyToReplyType" id="replyToReplyType" required>
+                        <option value="" disabled hidden selected="selected">Reply Type</option>
+                        <option value="1">Evidence</option>
+                        <option value="2">Support</option>
+                        <option value="3">Rebuttal</option>
+                    </select>
+                    <div>
+                        <button style="width: auto; padding: 15px; background-color: transparent; border: none;"
+                            type="reset" class="formBtnCancel" id="cancel"
+                            onclick="hideReplyForm('replyTo_{{ reply.Id }}')">Cancel</button>
+                        <button style="width: auto; padding: 15px;" type="submit" class="formBtn" id="continue">Submit
+                            Reply</button>
+                    </div>
+                </div>
+            </form>
+        </div>
         {% endfor %}
+
+        <!-- Reply To Claim Form -->
+        {% if loggedIn == True %}
+        <hr style="margin: 40px;">
+        <div id="ReplyToClaimContainer">
+            <div id="forumHierarchy"><b>Your Reply</b></div>
+            <form action="/{{ topic.TopicId }}/{{ claim.ClaimId }}/new/reply" method="POST">
+                <div id="inputFields">
+                    <textarea rows="10" placeholder="Your reply (minimum 15 characters)..." minlength="15"
+                        name="replyToClaimText" id="replyToClaimText" required></textarea>
+                </div>
+                <div style="margin: 10px;" class="flex-container-space-between">
+                    <select style="padding: 5px;" name="replyToClaimType" id="replyToClaimType" required>
+                        <option value="" disabled hidden selected="selected">Reply Type</option>
+                        <option value="1">Clarification</option>
+                        <option value="2">Supporting Argument</option>
+                        <option value="3">Counterargument</option>
+                    </select>
+                    <button style="width: auto; padding: 15px;" type="submit" class="formBtn" id="formBtn">Submit
+                        Reply</button>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+
     </div>
 </body>
 
 <style>
+    textarea {
+        border: 3px solid black;
+        resize: vertical;
+        width: 95%;
+        padding: 10px;
+        border-radius: 10px;
+    }
+
+    .quoteReply {
+        color: var(--text);
+        background-color: bisque;
+        border-left: 7px solid rgb(231, 208, 179);
+        border-bottom-right-radius: 15px;
+        border-top-right-radius: 15px;
+        padding: 10px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+        white-space: pre-wrap;
+        overflow-wrap: break-word;
+    }
+
+    .adminLabel {
+        background-color: rgb(202, 0, 0);
+        border-radius: 10px;
+        padding: 10px;
+        margin-left: 20px;
+        margin-right: 20px;
+    }
+
     .userProfile {
         vertical-align: top;
-        margin-top: 15px;
-        border: 5px solid whitesmoke;
+        border: 5px solid var(--border);
         max-width: 75px;
         max-height: 75px;
         width: auto;
@@ -52,13 +211,13 @@
     }
 
     .userInfo {
-        color: white;
+        color: var(--text);
         text-align: center;
         margin: 5px;
     }
 
     .claimTextContainer {
-        border: 3px solid whitesmoke;
+        border: 3px solid var(--border);
         vertical-align: top;
         margin-top: 20px;
         margin-right: 20px;
@@ -68,16 +227,38 @@
     }
 
     .claimText {
-        color: white;
+        color: var(--text);
         vertical-align: middle;
-        font-size: 16px;
         margin: auto;
         white-space: pre-wrap;
         overflow-wrap: break-word;
+        font-size: 16px;
+    }
+
+    .replyingTo {
+        color: var(--text);
+        border: 3px solid var(--border);
+        border-radius: 10px;
+        vertical-align: middle;
+        text-align: center;
+        padding: 5px;
+        font-size: 20px;
+    }
+
+    .replyToReplyContainer {
+        border-left: 3px solid var(--border);
+        border-bottom: 3px solid var(--border);
+        border-right: 3px solid var(--border);
+        border-bottom-right-radius: 15px;
+        border-bottom-left-radius: 15px;
+        display: none;
+        margin: auto;
+        margin-bottom: 50px;
+        width: 85%;
     }
 
     .grid-container {
-        border: 3px solid whitesmoke;
+        border: 3px solid var(--border);
         display: grid;
         grid-template-columns: 20% 80%;
     }

@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, redirect, session, url_for, render_template, request
+from flask import Flask, redirect, url_for, render_template, request, session
 import sqlite3
 import hashlib
 
@@ -14,16 +14,16 @@ def page_not_found(e):
     return NotFound()
 
 
+# Home
 @app.route('/')
 def homepage():
     topics = getAllTopics()
     if isUserLoggedIn():
-        username = getUsername(getUserIDFromSession())
-        return render_template("Homepage.html", loggedIn=True, username=username, topics=topics)
+        return render_template("Homepage.html", loggedIn=True, username=session["Username"], topics=topics)
     return render_template("Homepage.html", topics=topics)
 
 
-################################ Account System ################################
+# Register
 @app.route('/register/<username>/<password>', methods=["POST"])
 def register(username, password):
     if username and password and not isUserLoggedIn():
@@ -45,12 +45,14 @@ def register(username, password):
                 "select userID from user where userName=?", (username,))
             for row in newAccount:
                 session["userID"] = row[0]
+                session["Username"] = getUsername(row[0])
             db.commit()
             db.close()
             return 'USER_CREATED'
     return 'MISSING_DATA'
 
 
+# Login
 @app.route('/login/<username>/<password>', methods=["POST"])
 def login(username, password):
     if username and password and not isUserLoggedIn():
@@ -62,6 +64,7 @@ def login(username, password):
         for user in account:
             if user[1] == hashPassword(password):
                 session["userID"] = user[0]
+                session["Username"] = getUsername(user[0])
                 db.close()
                 return 'LOGIN_SUCCESSFUL'
             else:
@@ -72,37 +75,36 @@ def login(username, password):
     return 'MISSING_DATA'
 
 
+# Logout
 @app.route('/logout')
 def logout():
     if isUserLoggedIn():
         session.clear()
     return redirect(url_for("homepage"))
-###############################################################################
 
 
 # View a topic
 @app.route('/<topicId>', methods=["GET"])
-def displayTopic(topicId):
+def displayClaimsOfTopic(topicId):
+    if not isTopicIdValid(topicId):
+        return NotFoundMessage("Topic")
+    if isUserLoggedIn():
+        loggedIn = True
+    else:
+        loggedIn = False
+
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
     claimList = []
-    if isTopicIdValid(topicId):
-        claims = cursor.execute(
-            "select * from claim where topic=?", (topicId,))
-        for row in claims:
-            claimId = row[0]
-            claimList.append(claimId)
-        topicName = getTopicName(topicId)
-        if isUserLoggedIn():
-            username = getUsername(getUserIDFromSession())
-            return render_template("Claims.html", loggedIn=True, username=username, topicId=topicId, topicName=topicName, claims=claimList)
-        else:
-            return render_template("Claims.html", topicId=topicId, topicName=topicName, claims=claimList)
-    else:
-        return NotFoundMessage("Topic")
+    claims = cursor.execute(
+        "select claimID from claim where topic=?", (topicId,))
+    for row in claims:
+        claimId = row[0]
+        claimList.append(claimId)
+    return render_template("Claims.html", loggedIn=True, topicId=topicId, topicName=getTopicName(topicId), claims=claimList)
 
 
-# When submitting a topic
+# Submit a topic
 @app.route('/new/topic/<topicName>', methods=["POST"])
 def createTopic(topicName):
     if isUserLoggedIn():
@@ -125,22 +127,40 @@ def displayClaim(topicId, claimId):
         return NotFoundMessage("Claim")
     if not isTopicRelatedToClaim(topicId, claimId):
         return NotFoundMessage("Claim is not related to that topic")
+    if isUserLoggedIn():
+        loggedIn = True
+    else:
+        loggedIn = False
 
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
+    # ADD UPDATE TIME WHEN A REPLY IS POSTED [CHANGE_NEEDED]
     claim = cursor.execute(
         "select postingUser, text, creationTime from claim where claimID=?", (claimId,))
     for row in claim:
         userId = row[0]
         claimText = row[1]
-        creationTime = convertJulianTime(row[2])
-    username = getUsername(userId)
-    topicName = getTopicName(topicId)
+        creationTime = row[2]
+
+    class Topic:
+        TopicId = topicId
+        TopicName = getTopicName(TopicId)
+
+    class Claim:
+        Username = getUsername(userId)
+        ClaimId = claimId
+        ClaimText = claimText
+        JoinDate = getUserJoinDate(userId)
+        ClaimPostDate = convertJulianTime(creationTime, "DATE")
+        TotalPosts = getUserTotalPosts(userId)
+        IsAdmin = isAdmin(userId)
+        LastUpdateTime = getClaimLastUpdateTime(ClaimId)
+
     db.close()
-    return render_template("Claim.html", topicId=topicId, topicName=topicName, username=username, claimText=claimText, creationTime=creationTime, isAdmin=isAdmin(userId), loggedIn=True)
+    return render_template("Claim.html", topic=Topic, claim=Claim, replies=getAllReplies(claimId), loggedIn=loggedIn)
 
 
-# Page to write and submit your claim
+# Page to write a claim
 @app.route('/<topicId>/new/claim', methods=["GET"])
 def newClaimPage(topicId):
     if isTopicIdValid(topicId):
@@ -153,7 +173,7 @@ def newClaimPage(topicId):
     return NotFoundMessage("Topic")
 
 
-# When submitting a claim
+# Submit a claim
 @app.route('/<topicId>/<userId>/new', methods=["POST"])
 def createClaim(topicId, userId):
     # This might need some testing, if a userid is not returned this might break the server? [CHANGE_NEEDED]
@@ -180,9 +200,83 @@ def createClaim(topicId, userId):
     return redirect("/" + str(topicId) + "/" + str(claimId))
 
 
-####################################################################
+# Submit a reply to a claim
+@app.route('/<topicId>/<claimId>/new/reply', methods=["POST"])
+def newClaimReply(topicId, claimId):
+    if not isTopicIdValid(topicId):
+        return NotFoundMessage("Topic")
+    if not isClaimIdValid(claimId):
+        return NotFoundMessage("Claim")
+    if not isUserLoggedIn():
+        return NotFoundMessage("Account")
+
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    replyText = request.form["replyToClaimText"]
+    replyType = request.form["replyToClaimType"]
+    creationTime = getCurrentJulianTime()
+
+    cursor.execute("insert into replyText (postingUser, creationTime, text) values (?, ?, ?)",
+                   (getUserIDFromSession(), creationTime, replyText,))
+    db.commit()
+    Id = cursor.execute(
+        "select replyTextID from replyText where creationTime=?", (creationTime,))
+    for row in Id:
+        replyId = row[0]
+    cursor.execute("insert into replyToClaim (reply, claim, replyToClaimRelType) values (?, ?, ?)",
+                   (replyId, claimId, replyType,))
+    db.commit()
+    cursor.execute("update claim set updateTime=? where claimID=?",
+                   (creationTime, claimId,))
+    db.commit()
+    db.close()
+    return redirect("/" + str(topicId) + "/" + str(claimId))
+
+
+# Submit a reply to a reply
+@app.route('/<topicId>/<claimId>/new/reply/<parentId>', methods=["POST"])
+def newReplyToReply(topicId, claimId, parentId):
+    if not isTopicIdValid(topicId):
+        return NotFoundMessage("Topic")
+    if not isClaimIdValid(claimId):
+        return NotFoundMessage("Claim")
+    # Validate replyToID [CHANGE_NEEDED]
+    # if not isReplyToIdValid(parentId):
+    #    return NotFoundMessage("")
+    if not isUserLoggedIn():
+        return NotFoundMessage("Account")
+
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    replyText = request.form["replyToReplyText"]
+    replyType = request.form["replyToReplyType"]
+    creationTime = getCurrentJulianTime()
+
+    cursor.execute("insert into replyText (postingUser, creationTime, text) values (?, ?, ?)",
+                   (getUserIDFromSession(), creationTime, replyText))
+    db.commit()
+    Id = cursor.execute(
+        "select replyTextID from replyText where creationTime=?", (creationTime,))
+    replyId = 0
+    for row in Id:
+        replyId = row[0]
+    cursor.execute("insert into replyToReply (reply, parent, replyToReplyRelType) values (?, ?, ?)",
+                   (replyId, parentId, replyType,))
+    db.commit()
+    db.close()
+    return redirect("/" + str(topicId) + "/" + str(claimId))
+
+
 ######################### HELPER FUNCTIONS #########################
-####################################################################
+# Error 404 page with a custom content missing message
+def NotFoundMessage(content):
+    return render_template("404.html", content=content)
+
+
+# Default error 404 page
+def NotFound():
+    return render_template("404.html", content="Page")
+
 
 # Returns a hashed password
 def hashPassword(password):
@@ -222,10 +316,30 @@ def isAdmin(id):
         "select isAdmin from user where userID=?", (id,))
     for row in user:
         if row[0] == True:
-            db.close()
             return True
-        db.close()
         return False
+
+
+# Returns the date when the account was created
+def getUserJoinDate(id):
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    date = cursor.execute(
+        "select creationTime from user where userID=?", (id,))
+    for row in date:
+        return convertJulianTime(row[0], "DATE")
+    return "User doesn't exist"
+
+
+# Returns the total number of posts and replies the user has created
+def getUserTotalPosts(id):
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    amount = cursor.execute(
+        "select count(*) from replyText where postingUser=?", (id,))
+    for row in amount:
+        return row[0]
+    return -1
 
 
 # Returns a json string with all the topics in the database
@@ -240,14 +354,138 @@ def getAllTopics():
     return topicList
 
 
-# Error 404 page with a custom content missing message
-def NotFoundMessage(content):
-    return render_template("404.html", content=content)
+# Returns the text of a parent id
+def getParentDetails(replyId):
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    # Gets parent id first
+    parent = cursor.execute(
+        "select parent from replyToReply where reply=?", (replyId,))
+    for row in parent:
+        parentId = row[0]
+    # Get details of parent
+    parentDetails = cursor.execute(
+        "select * from replyText where replyTextID=?", (parentId,))
+    for row in parentDetails:
+        class Parent:
+            Id = row[0]
+            UserId = row[1]
+            CreatedAt = row[2]
+            Text = row[3]
+        return Parent
+    return "PARENT NOT FOUND"
 
 
-# Default error 404 page
-def NotFound():
-    return render_template("404.html", content="Page")
+# Returns true if a reply of a reply is related to a claim, false if not
+def isReplyRelatedToClaim(replyTextId, claimId):
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+
+    found = False
+    STOP = False
+    while not STOP:
+        # Get parent Id
+        parentId = -1
+        reply = cursor.execute(
+            "select parent from replyToReply where reply=?", (replyTextId,))
+        for row in reply:  # Executes once
+            parentId = row[0]
+        print("Processing parentId[" + str(parentId) + "]")
+        # If parentId is -1 then this replyTextId is not even in the replyToReply table
+        # which means its a claim reply not a reply to reply. Therefore we should just stop as its not related
+        if parentId == -1:
+            found = False
+            STOP = True
+
+        # Get the claimId of the reply
+        claim = cursor.execute(
+            "select claim from replyToClaim where reply=?", (parentId,))
+        # Executes once
+        # If the for loop doesnt execute then this is not a claim reply, so theres more ancestors
+        # Therefore we replace the replyTextId with the current parentId and we re-do the process
+        # until we find a parent that is a claim reply, which will contain a claimId
+        for row in claim:
+            id = row[0]
+            print("Found a claimId..." + str(id) +
+                  ". Now will compare ClaimId[" + str(claimId) + "] == id[" + str(id) + "]")
+            if int(claimId) == int(id):
+                found = True
+                STOP = True
+            else:
+                found = False
+                STOP = True
+        replyTextId = parentId
+
+    print(found)
+    if found:
+        return True
+    return False
+
+
+# Returns a list of all the replies relating to a claimId
+def getAllReplies(claimId):
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    replyList = []  # This list will contain all the replies
+
+    allClaimReplies = cursor.execute(
+        "select reply from replyToClaim where claim=?", (claimId,))  # Grab the reply type as well and showcase it [CHANGE_NEEDED]
+    temp = []
+    for row in allClaimReplies:
+        temp.append(row[0])
+
+    # Get all claim reply details
+    for cId in temp:  # For every claim reply
+        reply = cursor.execute(
+            "select postingUser, creationTime, text from replyText where replyTextID=?", (cId,))
+        for row in reply:  # Executes once
+            userId = row[0]
+            createdAt = row[1]
+            text = row[2]
+
+        class ClaimReply:
+            isReplyToReply = False
+            Id = cId
+            Text = text
+            Username = getUsername(userId)
+            JoinDate = getUserJoinDate(userId)
+            ReplyPostDate = convertJulianTime(createdAt, "DATE")
+            TotalPosts = getUserTotalPosts(userId)
+            IsAdmin = isAdmin(userId)
+        replyList.append(ClaimReply)
+
+    # Get all replies of replies related to the claim
+    allRepliesOfReplies = cursor.execute("select reply from replyToReply")
+    temp = []
+    for row in allRepliesOfReplies:  # For every reply of reply
+        print("Checking for..." + str(row[0]))
+        if isReplyRelatedToClaim(row[0], claimId):
+            temp.append(row[0])
+
+    for rId in temp:  # For every reply of reply
+        data = cursor.execute(
+            "select postingUser, creationTime, text from replyText where replyTextID=?", (rId,))
+        for row in data:  # Executes once
+            userId = row[0]
+            createdAt = row[1]
+            text = row[2]
+        parent = getParentDetails(rId)
+
+        class ReplyReply:
+            isReplyToReply = True
+            Id = rId
+            Text = text
+            ReplyingToId = parent.Id
+            ReplyingToUsername = getUsername(parent.UserId)
+            ReplyingToText = parent.Text
+            Username = getUsername(userId)
+            JoinDate = getUserJoinDate(userId)
+            ReplyPostDate = convertJulianTime(createdAt, "DATE")
+            TotalPosts = getUserTotalPosts(userId)
+            IsAdmin = isAdmin(userId)
+        replyList.append(ReplyReply)
+
+    return replyList
 
 
 # Returns true if the topicId given exists in the database and false if not
@@ -285,6 +523,16 @@ def updateTimeTopic(topicId):
     db.close()
 
 
+# Returns the date and time of when a claim was last updated
+def getClaimLastUpdateTime(claimId):
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    date = cursor.execute(
+        "select updateTime from claim where claimID=?", (claimId,))
+    for row in date:
+        return convertJulianTime(row[0], "FULL")
+
+
 # Returns true if the claimId given exists in the database and false if not
 def isClaimIdValid(id):
     db = sqlite3.connect(PATH)
@@ -312,10 +560,26 @@ def isTopicRelatedToClaim(topicId, claimId):
 
 
 # Converts julian time to regular time and returns it
-def convertJulianTime(julianTime):
+def convertJulianTime(julianTime, format):
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
-    time = cursor.execute("select datetime(?)", (julianTime,))
+    if str(format).upper() == "FULL":
+        time = cursor.execute("select datetime(?)", (julianTime,))
+    elif str(format).upper() == "DATE":
+        time = cursor.execute("select date(?)", (julianTime,))
+    elif str(format).upper() == "TIME":
+        time = cursor.execute("select time(?)", (julianTime,))
+    else:
+        return "Invalid"
     for row in time:
+        return row[0]
+
+
+# Returns the current date and time in julian form (Useful when needing to store it in variables)
+def getCurrentJulianTime():
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    datetime = cursor.execute("select julianday('now')")
+    for row in datetime:
         return row[0]
 ####################################################################

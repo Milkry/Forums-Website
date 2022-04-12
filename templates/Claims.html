@@ -14,18 +14,26 @@
 
 <body>
     <div class="forumsContainer">
-        <div id="forumHierarchy"><a href="/">Topic</a>: {{ topicName }}</div>
-        <label class="searchLabel"><i class="fa fa-search" aria-hidden="true"></i></label>
-        <input class="searchField" type="search" placeholder="Search..." id="search" />
-        {% if loggedIn is defined %}
-        <button class="btn" style="float: right;" onclick="location.href='/{{ topicId }}/new/claim'">New Claim</button>
-        {% endif %}
+        <div id="forumHierarchy" class="flex-container-space-between">
+            <div>
+                <button id="homeBtn" onclick="location.href='/'" class="forumHierarchyButton">
+                    <i class="fa fa-home fa-2x" aria-hidden="true"></i>
+                </button>
+                <i class="fa fa-long-arrow-right" aria-hidden="true"></i>
+                <span>{{ topicName }}</span>
+            </div>
+            <div>
+                {% if loggedIn is defined %}
+                <button class="btn" onclick="location.href='/{{ topicId }}/new/claim'">New Claim</button>
+                {% endif %}
+            </div>
+        </div>
 
-        {% for claim in claims %}
-        <div onclick="location.href='/{{ topicId }}/{{ claim }}'" class="claimContainer">
+        {% for claimId in claims %}
+        <div onclick="location.href='/{{ topicId }}/{{ claimId }}'" class="claimContainer">
             <hr>
             <i class="fa fa-commenting-o fa-4x claimIcon" aria-hidden="true"></i>
-            <span class="claim">{{ claim }}</span>
+            <span class="claim">{{ claimId }}</span>
             <hr>
         </div>
         {% endfor %}
@@ -40,18 +48,18 @@
 
     .claimContainer:active,
     .claimContainer:hover {
-        background-color: rgb(68, 68, 68);
+        background-color: var(--highlight);
         border-radius: 30px;
     }
 
     .claimIcon {
-        color: white;
+        color: var(--primary);
         vertical-align: middle;
         margin-left: 40px;
     }
 
     .claim {
-        color: white;
+        color: var(--text);
         padding: 10px;
         margin-right: 10px;
         font-size: 25px;

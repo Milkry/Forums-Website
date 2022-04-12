@@ -40,7 +40,7 @@ function register(e) {
     if (mutex) return;
     mutex = true;
 
-    let button = document.getElementById("proceedButton");
+    let button = document.getElementById("formBtn");
     let originalButtonColor = button.style.background;
     button.disabled = true;
     button.style.background = disabledButtonsColor;
@@ -94,7 +94,7 @@ function login(e) {
     if (mutex) return;
     mutex = true;
 
-    let button = document.getElementById("proceedButton");
+    let button = document.getElementById("formBtn");
     let originalButtonColor = button.style.background;
     button.disabled = true;
     button.style.background = disabledButtonsColor;
@@ -153,7 +153,7 @@ function createTopic(e) {
     if (mutex) return;
     mutex = true;
 
-    let button = document.getElementById("proceedButton");
+    let button = document.getElementById("formBtn");
     let originalButtonColor = button.style.background;
     button.disabled = true;
     button.style.background = disabledButtonsColor;

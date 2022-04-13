@@ -8,6 +8,8 @@ app.secret_key = b'jGqNj?O}&6n<]&}mG+nS)([Smk6{P>k5>F^d:qJ2&z:qZQf}blH0=bm/my"&(
 # Make a json config file to store the database name
 PATH = "./ScriptsDB/forums.db"
 
+# IMPLEMENT LAST VISIT FOR USER [CHANGE_NEEDED]
+
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -30,25 +32,20 @@ def register(username, password):
         db = sqlite3.connect(PATH)
         cursor = db.cursor()
         # Determine if the account already exists
-        accoundFound = False
         account = cursor.execute(
             "select userID from user where userName=?", (username,))
         for row in account:
-            accoundFound = True
-        # If it does, then return an error and let the user know. Else create it.
-        if accoundFound:
             return 'USER_EXISTS'
-        else:
-            cursor.execute(
-                "insert into user (userName, passwordHash, isAdmin, creationTime, lastVisit) values (?, ?, 0, julianday('now'), 0)", (username, hashPassword(password),))
-            newAccount = cursor.execute(
-                "select userID from user where userName=?", (username,))
-            for row in newAccount:
-                session["userID"] = row[0]
-                session["Username"] = getUsername(row[0])
-            db.commit()
-            db.close()
-            return 'USER_CREATED'
+        cursor.execute(
+            "insert into user (userName, passwordHash, isAdmin, creationTime, lastVisit) values (?, ?, 0, julianday('now'), 0)", (username, hashPassword(password),))
+        db.commit()
+        newAccount = cursor.execute(
+            "select userID from user where userName=?", (username,))
+        for row in newAccount:
+            session["userID"] = row[0]
+            session["Username"] = username
+        db.close()
+        return 'USER_CREATED'
     return 'MISSING_DATA'
 
 
@@ -97,11 +94,16 @@ def displayClaimsOfTopic(topicId):
     cursor = db.cursor()
     claimList = []
     claims = cursor.execute(
-        "select claimID from claim where topic=?", (topicId,))
+        "select claimID, postingUser, creationTime, updateTime, text from claim where topic=? order by updateTime desc", (topicId,))
     for row in claims:
-        claimId = row[0]
-        claimList.append(claimId)
-    return render_template("Claims.html", loggedIn=True, topicId=topicId, topicName=getTopicName(topicId), claims=claimList)
+        class Claim:
+            Id = row[0]
+            Username = getUsername(row[1])
+            CreatedAt = convertJulianTime(row[2], "FULL")
+            UpdatedAt = convertJulianTime(row[3], "FULL")
+            Text = row[4][:25] + str("...")
+        claimList.append(Claim)
+    return render_template("Claims.html", loggedIn=loggedIn, topicId=topicId, topicName=getTopicName(topicId), claims=claimList)
 
 
 # Submit a topic
@@ -110,7 +112,7 @@ def createTopic(topicName):
     if isUserLoggedIn():
         db = sqlite3.connect(PATH)
         cursor = db.cursor()
-        cursor.execute("insert into topic (topicName, postingUser, creationTime, updateTime) values (?, ?, julianday('now'), 0)",
+        cursor.execute("insert into topic (topicName, postingUser, creationTime, updateTime) values (?, ?, julianday('now'), julianday('now'))",
                        (topicName, getUserIDFromSession(),))
         db.commit()
         db.close()
@@ -184,19 +186,18 @@ def createClaim(topicId, userId):
 
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
-    cursor.execute("insert into claim (topic, postingUser, creationTime, updateTime, text) values (?, ?, julianday('now'), 0, ?)",
-                   (topicId, userId, request.form["claimText"],))
+    text = request.form["claimText"]
+    currentTime = getCurrentJulianTime()
+    cursor.execute("insert into claim (topic, postingUser, creationTime, updateTime, text) values (?, ?, ?, ?, ?)",
+                   (topicId, userId, currentTime, currentTime, text,))
     claim = cursor.execute(
-        "select claimID from claim where text=?", (request.form["claimText"],))  # Instead of searching the database using the claimText, use the creationTime [CHANGE_NEEDED]
+        "select claimID from claim where creationTime=?", (currentTime,))  # Instead of searching the database using the claimText, use the creationTime [CHANGE_NEEDED]
     for row in claim:
         claimId = row[0]
-    if not claimId:
-        # Handle the internal server error better here [CHANGE_NEEDED]
-        db.close()
-        return 'ClaimId was not initialized.'
+    cursor.execute(
+        "update topic set updateTime=julianday('now') where topicID=?", (topicId,))
     db.commit()
     db.close()
-    updateTimeTopic(topicId)
     return redirect("/" + str(topicId) + "/" + str(claimId))
 
 
@@ -257,11 +258,13 @@ def newReplyToReply(topicId, claimId, parentId):
     db.commit()
     Id = cursor.execute(
         "select replyTextID from replyText where creationTime=?", (creationTime,))
-    replyId = 0
     for row in Id:
         replyId = row[0]
     cursor.execute("insert into replyToReply (reply, parent, replyToReplyRelType) values (?, ?, ?)",
                    (replyId, parentId, replyType,))
+    db.commit()
+    cursor.execute(
+        "update claim set updateTime=julianday('now') where claimID=?", (claimId,))
     db.commit()
     db.close()
     return redirect("/" + str(topicId) + "/" + str(claimId))
@@ -342,14 +345,54 @@ def getUserTotalPosts(id):
     return -1
 
 
-# Returns a json string with all the topics in the database
+# Returns the total amount of claims a topic has
+def getTotalClaimsInTopic(topicId):
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    claim = cursor.execute(
+        "select count(*) from claim where topic=?", (topicId,))
+    for row in claim:
+        return row[0]
+
+
+# Returns the newest/latest claim created in a topic
+def getLatestClaimInTopic(topicId):
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    latestClaim = cursor.execute(
+        "select claimID, postingUser, updateTime from claim where topic=? order by updateTime desc limit 1", (topicId,))
+
+    class LatestClaim:
+        HasClaim = False
+    for row in latestClaim:
+        class LatestClaim:
+            HasClaim = True
+            Id = row[0]
+            Username = getUsername(row[1])
+            UpdatedAt = convertJulianTime(row[2], "FULL")
+    return LatestClaim
+
+
+# Returns all the topics available
 def getAllTopics():
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
-    topics = cursor.execute("select topicName from topic")
+    topics = cursor.execute(
+        "select topicID, topicName, postingUser from topic order by updateTime desc")
     topicList = []
     for row in topics:
-        topicList.append(row[0])
+        topicId = row[0]
+        topicName = row[1]
+        poster = row[2]
+
+        class Topic:
+            Id = topicId
+            Name = topicName
+            Creator = getUsername(poster)
+            Claims = getTotalClaimsInTopic(Id)
+            Claim = getLatestClaimInTopic(Id)
+        topicList.append(Topic)
+
     db.close()
     return topicList
 
@@ -429,7 +472,7 @@ def getAllReplies(claimId):
     replyList = []  # This list will contain all the replies
 
     allClaimReplies = cursor.execute(
-        "select reply from replyToClaim where claim=?", (claimId,))  # Grab the reply type as well and showcase it [CHANGE_NEEDED]
+        "select reply from replyToClaim where claim=?", (claimId,))
     temp = []
     for row in allClaimReplies:
         temp.append(row[0])
@@ -447,6 +490,7 @@ def getAllReplies(claimId):
             isReplyToReply = False
             Id = cId
             Text = text
+            ReplyType = getReplyType(Id, "CLAIM")
             Username = getUsername(userId)
             JoinDate = getUserJoinDate(userId)
             ReplyPostDate = convertJulianTime(createdAt, "DATE")
@@ -475,6 +519,7 @@ def getAllReplies(claimId):
             isReplyToReply = True
             Id = rId
             Text = text
+            ReplyType = getReplyType(Id, "REPLY")
             ReplyingToId = parent.Id
             ReplyingToUsername = getUsername(parent.UserId)
             ReplyingToText = parent.Text
@@ -486,6 +531,34 @@ def getAllReplies(claimId):
         replyList.append(ReplyReply)
 
     return replyList
+
+
+# Returns the reply type text (Clarification/Counterargument/Evidence/Support/etc.)
+def getReplyType(replyId, typeOfReply):
+    if str(typeOfReply).upper() == "CLAIM":
+        db = sqlite3.connect(PATH)
+        cursor = db.cursor()
+        type = cursor.execute(
+            "select replyToClaimRelType from replyToClaim where reply=?", (replyId,))
+        for row in type:
+            typeId = row[0]
+        claimType = cursor.execute(
+            "select claimReplyType from replyToClaimType where claimReplyTypeID=?", (typeId,))
+        for row in claimType:
+            return row[0]
+    elif str(typeOfReply).upper() == "REPLY":
+        db = sqlite3.connect(PATH)
+        cursor = db.cursor()
+        type = cursor.execute(
+            "select replyToReplyRelType from replyToReply where reply=?", (replyId,))
+        for row in type:
+            typeId = row[0]
+        replyType = cursor.execute(
+            "select replyReplyType from replyToReplyType where replyReplyTypeID=?", (typeId,))
+        for row in replyType:
+            return row[0]
+    else:
+        return "INVALID TYPE"
 
 
 # Returns true if the topicId given exists in the database and false if not
@@ -511,16 +584,6 @@ def getTopicName(id):
         return row[0]
     db.close()
     return "NULL"
-
-
-# Updates the "updateTime" column of a specific topic
-def updateTimeTopic(topicId):
-    db = sqlite3.connect(PATH)
-    cursor = db.cursor()
-    cursor.execute(
-        "update topic set updateTime=julianday('now') where topicID=?", (topicId,))
-    db.commit()
-    db.close()
 
 
 # Returns the date and time of when a claim was last updated

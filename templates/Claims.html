@@ -29,11 +29,27 @@
             </div>
         </div>
 
-        {% for claimId in claims %}
-        <div onclick="location.href='/{{ topicId }}/{{ claimId }}'" class="claimContainer">
+        <div class="topicContainerTitle grid-container-topics">
+            <span style="color: white; margin-left: 70px;"><b>Claim</b></span>
+            <span style="color: white;" class="grid-content-center"><b>Latest Reply</b></span>
+            <span style="color: white;" class="grid-content-center"><b>Poster</b></span>
+        </div>
+
+        {% for claim in claims %}
+        <div>
             <hr>
-            <i class="fa fa-commenting-o fa-4x claimIcon" aria-hidden="true"></i>
-            <span class="claim">{{ claimId }}</span>
+            <div class="grid-container-topics">
+                <div onclick="location.href='/{{ topicId }}/{{ claim.Id }}'" class="claimContainer">
+                    <span class="claimText"><i class="fa fa-commenting-o fa-3x claimIcon" aria-hidden="true"></i>{{
+                        claim.Text }}</span>
+                </div>
+                <div class="grid-content-center">
+                    <span>{{ claim.UpdatedAt }}</span>
+                </div>
+                <div class="grid-content-center">
+                    <span>By <b>{{ claim.Username }}</b></span>
+                </div>
+            </div>
             <hr>
         </div>
         {% endfor %}
@@ -42,13 +58,14 @@
 
 <style>
     .claimContainer {
-        margin: 20px;
+        margin: 10px 0 10px 10px;
         cursor: pointer;
     }
 
     .claimContainer:active,
     .claimContainer:hover {
         background-color: var(--highlight);
+        box-shadow: 0 0 10px 10px var(--highlight);
         border-radius: 30px;
     }
 
@@ -56,9 +73,10 @@
         color: var(--primary);
         vertical-align: middle;
         margin-left: 40px;
+        margin-right: 20px;
     }
 
-    .claim {
+    .claimText {
         color: var(--text);
         padding: 10px;
         margin-right: 10px;

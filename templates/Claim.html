@@ -31,9 +31,11 @@
             behavior: 'smooth',
             block: 'start',
         });
-        var border = $('#' + id).css('border');
-        $('#' + id).css('border', '5px dashed yellow');
-        setTimeout(() => $('#' + id).css('border', border), 2000);
+        var shadow = $('#' + id).css('box-shadow');
+        $('#' + id).css('box-shadow', '0 0 10px 10px var(--secondary)');
+        setTimeout(() => {
+            $('#' + id).css('box-shadow', shadow)
+        }, 2000);
     }
 </script>
 
@@ -52,7 +54,6 @@
                 <span>{{ claim.Username }}</span>
             </div>
             <div style="background-color: var(primary); border-radius: 15px; padding: 10px;">
-                <span style="color: black; font-size: 20px;">Last Updated: <u>{{ claim.LastUpdateTime }}</u></span>
                 {% if loggedIn == True %}
                 <button class="btn" onclick="moveTo('ReplyToClaimContainer')">Reply To Claim</button>
                 {% endif %}
@@ -66,7 +67,9 @@
                 <p><b>{{ claim.Username }}</b></p>
                 <img class="userProfile" src="{{ url_for('static', filename='Resources/Images/default_user.png') }}">
                 {% if claim.IsAdmin == True %}
-                <p class="adminLabel"><b>Admin</b></p>
+                <br>
+                <span class="adminLabel"><b>Admin</b></span>
+                <br>
                 {% endif %}
                 <p>Join Date: {{ claim.JoinDate }}</p>
                 <p>Posted: {{ claim.ClaimPostDate }}</p>
@@ -78,10 +81,13 @@
         </div>
 
         <!-- Make a statistics bar [CHANGE_NEEDED] -->
-        <div>
-            <h3>Statistics</h3>
-            <div>
-                <span>{{ replies|length }}</span>
+        <div style="text-align: center;">
+            <h2 class="statisticsTitle">Claim Statistics</h2>
+            <div style="text-align: center;">
+                <span class="statisticsText">Total Replies: <b>{{ replies|length }}</b></span>
+                <br>
+                <br>
+                <span class="statisticsText">Last Updated: <b>{{ claim.LastUpdateTime }}</b></span>
             </div>
         </div>
 
@@ -89,10 +95,12 @@
         {% for reply in replies %}
         <div id="reply_{{ reply.Id }}" style="margin-left: 30px; margin-top: 30px;" class="grid-container">
             <div class="userInfo">
-                <p><b>{{ reply.Username }} {{ reply.Id }}</b></p>
+                <p><b>{{ reply.Username }}</b></p>
                 <img class="userProfile" src="{{ url_for('static', filename='Resources/Images/default_user.png') }}">
                 {% if reply.IsAdmin == True %}
-                <p class="adminLabel"><b>Admin</b></p>
+                <br>
+                <span class="adminLabel"><b>Admin</b></span>
+                <br>
                 {% endif %}
                 <p>Join Date:{{ reply.JoinDate }}</p>
                 <p>Posted: {{ reply.ReplyPostDate }}</p>
@@ -100,16 +108,21 @@
             </div>
             <div style="border-radius: 15px; width: auto;" class="claimTextContainer">
                 <div style="margin-bottom: 10px;" class="flex-container-space-between">
-                    {% if reply.isReplyToReply == True %}
-                    <span class="replyingTo">Replying To: <a onclick="moveTo('reply_{{ reply.ReplyingToId }}')">{{
-                            reply.ReplyingToUsername }}</a></span>
-                    {% else %}
-                    <span class="replyingTo">Replying To: <a onclick="moveTo('{{ claim.ClaimId }}')">{{
-                            claim.Username }}</a></span>
-                    {% endif %}
-                    {% if loggedIn == True %}
-                    <button class="btn" onclick="showReplyForm('replyTo_{{ reply.Id }}')">Reply</button>
-                    {% endif %}
+                    <div>
+                        {% if reply.isReplyToReply == True %}
+                        <span class="replyingTo">Replying To: <a onclick="moveTo('reply_{{ reply.ReplyingToId }}')">{{
+                                reply.ReplyingToUsername }}</a></span>
+                        {% else %}
+                        <span class="replyingTo">Replying To: <a onclick="moveTo('{{ claim.ClaimId }}')">{{
+                                claim.Username }}</a></span>
+                        {% endif %}
+                        <span style="margin-left: 10px;" class="replyTypeLabel">{{ reply.ReplyType }}</span>
+                    </div>
+                    <div>
+                        {% if loggedIn == True %}
+                        <button class="btn" onclick="showReplyForm('replyTo_{{ reply.Id }}')">Reply</button>
+                        {% endif %}
+                    </div>
                 </div>
                 {% if reply.isReplyToReply == True %}
                 <div class="quoteReply">{{ reply.ReplyingToText }}</div>
@@ -180,6 +193,14 @@
         border-radius: 10px;
     }
 
+    .replyTypeLabel {
+        background-color: var(--secondary);
+        color: var(--text);
+        padding: 10px;
+        border-radius: 10px;
+        overflow-wrap: break-word;
+    }
+
     .quoteReply {
         color: var(--text);
         background-color: bisque;
@@ -194,7 +215,9 @@
     }
 
     .adminLabel {
-        background-color: rgb(202, 0, 0);
+        color: var(--text2);
+        background-color: var(--admin);
+        box-shadow: 0 0 5px 3px var(--admin);
         border-radius: 10px;
         padding: 10px;
         margin-left: 20px;
@@ -255,6 +278,18 @@
         margin: auto;
         margin-bottom: 50px;
         width: 85%;
+    }
+
+    .statisticsTitle {
+        background-color: bisque;
+        width: auto;
+        padding: 8px;
+        border-radius: 20px;
+    }
+
+    .statisticsText {
+        color: black;
+        font-size: 20px;
     }
 
     .grid-container {

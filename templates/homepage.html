@@ -81,7 +81,7 @@
                 </div>
                 <div id="inputFields">
                     <input type="text" placeholder="Username" name="registerUsername" id="registerUsername"
-                        minlength="3" maxlength="25" required>
+                        minlength="3" maxlength="20" required>
                     <input type="password" onchange="validation()" placeholder="Password" name="registerPassword"
                         id="registerPassword" minlength="4" required>
                     <input type="password" onchange="validation()" placeholder="Confirm Password" name="confirmPassword"
@@ -140,7 +140,6 @@
     </div>
 
     <!-- Topics Section -->
-    <!-- SORT THEM BASED ON RECENTLY UPDATED TOPICS [CHANGE_NEEDED] -->
     <div class="forumsContainer">
         <div class="flex-container-space-between">
             <div>
@@ -151,11 +150,41 @@
             <button class="btn" onclick="overlayOn('overlayTopic')">New Topic</button>
             {% endif %}
         </div>
+        <div class="topicContainerTitle grid-container-topics">
+            <span style="color: white; margin-left: 70px;"><b>Topic</b></span>
+            <span style="color: white;" class="grid-content-center"><b>Latest Claim</b></span>
+            <span style="color: white;" class="grid-content-center"><b>Claims</b></span>
+        </div>
         {% for topic in topics %}
-        <div onclick="location.href='/{{ loop.index }}'" class="topicContainer">
+        <div>
             <hr>
-            <i class="fa fa-comments-o fa-4x topicIcon" aria-hidden="true"></i>
-            <span class="topic">{{ topic }}</span>
+            <div class="grid-container-topics">
+                <div onclick="location.href='/{{ topic.Id }}'" style="margin-left: 20px;"
+                    class="topicContainer grid-content-middle">
+                    <span class="topic"><i class="fa fa-comments-o fa-4x topicIcon" aria-hidden="true"></i>{{ topic.Name
+                        }}</span>
+                </div>
+                <div style="font-size: 15px;" class="topic grid-content-center">
+                    {% if topic.Claim.HasClaim == True %}
+                    <div onclick="location.href='/{{ topic.Id }}/{{ topic.Claim.Id }}'"
+                        style="display: grid; grid-template-columns: 20% 80%; justify-items: center; align-items: center; text-align: center;"
+                        class="topicContainer">
+                        <i style="margin-right: 10px; color: var(--primary);" class="fa fa-commenting-o fa-3x"
+                            aria-hidden="true"></i>
+                        <div>
+                            <span>Claim By: <b>{{ topic.Claim.Username }}</b></span>
+                            <br>
+                            <span>Last Reply: <b>{{ topic.Claim.UpdatedAt }}</b></span>
+                        </div>
+                    </div>
+                    {% else %}
+                    <span>No Claims</span>
+                    {% endif %}
+                </div>
+                <div class="grid-content-center">
+                    <span>{{ topic.Claims }}</span>
+                </div>
+            </div>
             <hr>
         </div>
         {% endfor %}
@@ -191,12 +220,15 @@
 
     .topicContainer {
         cursor: pointer;
-        margin: 20px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        margin: 5px 0 5px 0;
     }
 
     .topicContainer:active,
     .topicContainer:hover {
         background-color: var(--highlight);
+        box-shadow: 0 0 10px 10px var(--highlight);
         border-radius: 30px;
     }
 
@@ -204,12 +236,12 @@
         color: var(--primary);
         vertical-align: middle;
         margin-left: 40px;
+        margin-right: 20px;
+        font-size: 70px;
     }
 
     .topic {
         color: var(--text);
-        padding: 10px;
-        margin-right: 10px;
         font-size: 25px;
         vertical-align: middle;
     }
@@ -223,17 +255,6 @@
         margin: auto;
         text-align: center;
         font-size: 60px;
-    }
-
-    .accountContainer {
-        background-color: var(--form);
-        border: 5px solid black;
-        border-radius: 20px;
-        float: right;
-        margin: 20px;
-        height: 100%;
-        padding: 30px;
-        width: 25%;
     }
 </style>
 

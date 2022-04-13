@@ -5,14 +5,19 @@
  :root {
      --primary: #8B21DE;
      --secondary: #6acc1f;
+     --third: #8290a2;
      --background: rgb(219, 219, 219);
      --background2: whitesmoke;
      --text: black;
+     --text2: white;
      --icon: black;
+     --icon2: white;
      --form: whitesmoke;
-     --highlight: rgb(180, 180, 180);
+     --highlight: rgb(223, 223, 223);
      --border: rgb(180, 180, 180);
      --link: dodgerblue;
+     --containerShadow: gray;
+     --admin:rgb(202, 0, 0);
  }
 
 /* ###################### CSS IDS ###################### */
@@ -63,8 +68,7 @@ a {
 hr {
     border: 2px solid #929292;
     border-radius: 50%;
-    margin-left: 25px;
-    margin-right: 25px;
+    margin: 10px 25px 10px 25px;
 }
 
 input[type=text],
@@ -105,12 +109,13 @@ input[type=password]:focus {
 
 .forumsContainer {
     background-color: var(--background2);
-    border: 5px solid var(--border);
     border-radius: 25px;
-    padding: 20px;
+    box-shadow: 10px 10px 5px var(--containerShadow);
+    padding: 30px;
     margin-top: 40px;
-    margin-left: 15%;
-    margin-right: 15%;
+    margin-left: 10%;
+    margin-right: 10%;
+    margin-bottom: 20px;
 }
 
 .searchField {
@@ -151,8 +156,21 @@ input[type=password]:focus {
     opacity: 1;
 }
 
+.accountContainer {
+    background-color: var(--form);
+    border: 5px solid black;
+    box-shadow: 0 0 10px 10px rgb(29, 29, 29);
+    border-radius: 20px;
+    margin: 20px;
+    height: 100%;
+    padding: 30px;
+    width: 25%;
+    float: right;
+}
+
 .blackbarContainer {
     background-color: var(--background2);
+    box-shadow: 10px 10px 5px var(--containerShadow);
     text-align: right;
     display: block;
     border-bottom-left-radius: 20px;
@@ -171,7 +189,7 @@ input[type=password]:focus {
 
 .blackbarButtons:active,
 .blackbarButtons:hover {
-    background-color: rgba(190, 190, 190, 0.25);
+    background-color: var(--highlight);
     border-radius: 20px;
     opacity: 1;
 }
@@ -197,6 +215,7 @@ input[type=password]:focus {
 .btn:active,
 .btn:hover {
     opacity: 1;
+    box-shadow: 0 0 5px 1px gray;
 }
 
 .formBtn {
@@ -211,6 +230,7 @@ input[type=password]:focus {
 .formBtn:active,
 .formBtn:hover {
     opacity: 1;
+    box-shadow: 0 0 5px 1px black;
 }
 
 .formBtnCancel {
@@ -227,9 +247,34 @@ input[type=password]:focus {
     opacity: 1;
 }
 
+.topicContainerTitle {
+    background-color: var(--third);
+    padding-top: 20px;
+    padding-bottom: 20px;
+    margin-top: 25px;
+    margin-bottom: 5px;
+    font-size: 20px;
+}
+
 .flex-container-space-between {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+}
+
+.grid-container-topics {
+    display: grid;
+    grid-template-columns: 50% 30% 20%;
+}
+
+.grid-content-center {
+    display: grid;
+    justify-items: center;
+    align-items: center;
+}
+
+.grid-content-middle {
+    display: grid;
     align-items: center;
 }
 /* ##################################################### */

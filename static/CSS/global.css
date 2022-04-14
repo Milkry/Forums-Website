@@ -4,7 +4,7 @@
 
  :root {
      --primary: #8B21DE;
-     --secondary: #6acc1f;
+     --secondary: #5db31c;
      --third: #8290a2;
      --background: rgb(219, 219, 219);
      --background2: whitesmoke;
@@ -18,6 +18,13 @@
      --link: dodgerblue;
      --containerShadow: gray;
      --admin:rgb(202, 0, 0);
+     --remove: red;
+     --replyTypeClarification: gold;
+     --replyTypeSupportingArgument: #89AC76;
+     --replyTypeCounterargument: #4D5645;
+     --replyTypeEvidence: #E6D690;
+     --replyTypeSupport: #57A639;
+     --replyTypeRebuttal: #D36E70;
  }
 
 /* ###################### CSS IDS ###################### */
@@ -133,6 +140,24 @@ input[type=password]:focus {
     margin: 5px;
 }
 
+.passwordMismatch {
+    color: var(--icon2);
+    background-color: red;
+    text-align: center;
+    display: none;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 0 10px 25px 25px;
+}
+
+.hrForm {
+    border: 2px solid #929292;
+    border-radius: 50%;
+    margin-bottom: 22px;
+    margin-left: 25px;
+    margin-right: 25px;
+}
+
 .centerDiv {
     position: absolute;
     margin: 0;
@@ -168,7 +193,7 @@ input[type=password]:focus {
     float: right;
 }
 
-.blackbarContainer {
+.navigationContainer {
     background-color: var(--background2);
     box-shadow: 10px 10px 5px var(--containerShadow);
     text-align: right;
@@ -177,7 +202,7 @@ input[type=password]:focus {
     border-bottom-right-radius: 20px;
 }
 
-.blackbarButtons {
+.navigationBtn {
     color: var(--text);
     background-color: transparent;
     border: none;
@@ -187,8 +212,8 @@ input[type=password]:focus {
     opacity: 0.85;
 }
 
-.blackbarButtons:active,
-.blackbarButtons:hover {
+.navigationBtn:active,
+.navigationBtn:hover {
     background-color: var(--highlight);
     border-radius: 20px;
     opacity: 1;
@@ -204,7 +229,7 @@ input[type=password]:focus {
 
 .btn {
     background-color: var(--secondary);
-    color: var(--text);
+    color: var(--text2);
     vertical-align: middle;
     cursor: pointer;
     margin: 2px;
@@ -214,6 +239,24 @@ input[type=password]:focus {
 
 .btn:active,
 .btn:hover {
+    opacity: 1;
+    box-shadow: 0 0 5px 1px gray;
+}
+
+.transBtn {
+    background-color: transparent;
+    color: var(--text);
+    border: none;
+    vertical-align: middle;
+    cursor: pointer;
+    margin: 2px;
+    padding: 10px 15px 10px 15px;
+    border-radius: 10px;
+    opacity: 0.85;
+}
+
+.transBtn:active,
+.transBtn:hover {
     opacity: 1;
     box-shadow: 0 0 5px 1px gray;
 }
@@ -238,13 +281,12 @@ input[type=password]:focus {
     color: var(--text);
     width: 100%;
     padding: 20px;
-    opacity: 0.9;
     cursor: pointer;
 }
 
 .formBtnCancel:active,
 .formBtnCancel:hover {
-    opacity: 1;
+    box-shadow: 0 0 5px 1px black;
 }
 
 .topicContainerTitle {

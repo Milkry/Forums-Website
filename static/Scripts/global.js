@@ -5,8 +5,14 @@ var box = null;
 var notificationInterval = 3000; // milliseconds
 var disabledButtonsColor = disabledButtonsColor;
 
-function load() {
+function load(register, login) {
     mutex = false;
+    $(function () {
+        $("#registerContainer").load(register);
+    });
+    $(function () {
+        $("#loginContainer").load(login);
+    });
 }
 
 function overlayOn(id) {

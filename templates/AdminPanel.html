@@ -9,7 +9,7 @@
         href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <script src="{{ url_for('static', filename='Scripts/global.js') }}"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <title>Claims</title>
+    <title>Admin Panel</title>
 </head>
 
 <body
@@ -40,29 +40,35 @@
     <div id="registerContainer"></div>
     <div id="loginContainer"></div>
 
-    <!-- Create Claim -->
     <div class="forumsContainer">
-        <div id="forumHierarchy"><b>You're posting a claim at:</b> {{ topicName }}</div>
-        <form action="/{{ topicId }}/{{ userId }}/new" method="POST">
-            <div id="inputFields">
-                <hr class="hrForm">
-                <textarea rows="15" placeholder="Describe your claim (minimum 15 characters)..." minlength="15"
-                    name="claimText" id="claimText" autofocus required></textarea>
-                <hr class="hrForm">
-                <button type="submit" style="width: 50%;" class="formBtn" id="formBtn">Submit Claim</button>
+        <h1 style="text-align: center;">Admin Panel</h1>
+        <hr>
+        <form action="/adminpanel/add" method="POST">
+            <div>
+                <label style="vertical-align: middle; font-size: 20px;"><b>Add Admin:</b></label>
+                <input style="width: 25%; margin: 10px;" type="text" placeholder="Enter a username..."
+                    name="adminUsername" id="adminUsername" required>
+                <button type="submit" style="width: auto;" class="transBtn"><i style="color: var(--primary);"
+                        class="fa fa-plus fa-lg" aria-hidden="true"></i></button>
             </div>
         </form>
+        <hr>
+        <div>
+            <h2>Current Admins:</h2>
+            {% for admin in admins %}
+            <form action="/adminpanel/remove/{{ admin.Id }}" method="POST">
+                <button type="submit" class="transBtn"><i style="color: var(--remove);" class="fa fa-trash fa-lg"
+                        aria-hidden="true"></i></button>
+                <span>{{ admin.Username }}</span>
+                <br>
+            </form>
+            {% endfor %}
+        </div>
+        <hr>
     </div>
 </body>
 
 <style>
-    textarea {
-        border: 3px solid black;
-        resize: vertical;
-        width: 95%;
-        padding: 10px;
-        border-radius: 10px;
-    }
 </style>
 
 </html>

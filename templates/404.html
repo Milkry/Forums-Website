@@ -9,22 +9,22 @@
 </head>
 
 <body>
-    <div class="forums">
+    <div>
         <h1 class="error404">Error 404: {{ content }} Not Found</h1>
         <p class="description">Whoops! Looks like this page doesn't exist...</p>
-        <p class="description">Go back to the <a href="/">Homepage</a>?</p>
+        <p class="description">Want to go back to the <a href="/">Homepage</a>?</p>
     </div>
 </body>
 
 <style>
     .error404 {
-        color: white;
+        color: var(--text);
         font-size: 70px;
         text-align: center;
     }
 
     .description {
-        color: white;
+        color: var(--text);
         font-size: 25px;
         text-align: center;
     }

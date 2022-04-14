@@ -20,9 +20,7 @@ def page_not_found(e):
 @app.route('/')
 def homepage():
     topics = getAllTopics()
-    if isUserLoggedIn():
-        return render_template("Homepage.html", loggedIn=True, username=session["Username"], topics=topics)
-    return render_template("Homepage.html", topics=topics)
+    return render_template("Homepage.html", user=getUserStatus(), topics=topics)
 
 
 # Register
@@ -73,22 +71,77 @@ def login(username, password):
 
 
 # Logout
-@app.route('/logout')
-def logout():
+@ app.route('/signout')
+def signout():
     if isUserLoggedIn():
         session.clear()
     return redirect(url_for("homepage"))
 
 
+# Admin Panel
+@ app.route('/adminpanel', methods=["GET"])
+def adminPanel():
+    user = getUserStatus()
+    if not user.LoggedIn:
+        return redirect(url_for("homepage"))
+    if not user.Admin:
+        return redirect(url_for("homepage"))
+
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    admins = cursor.execute(
+        "select userID, userName from user where isAdmin=1")
+    adminList = []
+    for row in admins:
+        class Admin:
+            Id = row[0]
+            Username = row[1]
+        adminList.append(Admin)
+    return render_template("AdminPanel.html", user=user, admins=adminList)
+
+
+# Adding an admin
+@ app.route('/adminpanel/add', methods=["POST"])
+def addAdmin():
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    username = request.form["adminUsername"]
+    found = False
+    account = cursor.execute("select userID from user where userName=?",
+                             (username,))
+    for row in account:
+        found = True
+    if found:
+        cursor.execute("update user set isAdmin=1 where userName=?",
+                       (username,))
+        db.commit()
+        db.close()
+        return redirect(url_for("adminPanel"))
+    return NotFoundMessage("Admin")
+
+
+# Removing an admin
+@ app.route('/adminpanel/remove/<adminId>', methods=["POST"])
+def removeAdmin(adminId):
+    if not isUserIdValid(adminId):
+        return NotFoundMessage("User")
+    if not isAdmin(adminId):
+        return NotFoundMessage("Admin")
+
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    cursor.execute("update user set isAdmin=0 where userID=?", (adminId,))
+    db.commit()
+    db.close()
+    return redirect(url_for("adminPanel"))
+
+
 # View a topic
-@app.route('/<topicId>', methods=["GET"])
+@ app.route('/<topicId>', methods=["GET"])
 def displayClaimsOfTopic(topicId):
+    user = getUserStatus()
     if not isTopicIdValid(topicId):
         return NotFoundMessage("Topic")
-    if isUserLoggedIn():
-        loggedIn = True
-    else:
-        loggedIn = False
 
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
@@ -103,11 +156,11 @@ def displayClaimsOfTopic(topicId):
             UpdatedAt = convertJulianTime(row[3], "FULL")
             Text = row[4][:25] + str("...")
         claimList.append(Claim)
-    return render_template("Claims.html", loggedIn=loggedIn, topicId=topicId, topicName=getTopicName(topicId), claims=claimList)
+    return render_template("Claims.html", user=user, topicId=topicId, topicName=getTopicName(topicId), claims=claimList)
 
 
 # Submit a topic
-@app.route('/new/topic/<topicName>', methods=["POST"])
+@ app.route('/new/topic/<topicName>', methods=["POST"])
 def createTopic(topicName):
     if isUserLoggedIn():
         db = sqlite3.connect(PATH)
@@ -121,18 +174,15 @@ def createTopic(topicName):
 
 
 # View a claim
-@app.route('/<topicId>/<claimId>', methods=["GET"])
+@ app.route('/<topicId>/<claimId>', methods=["GET"])
 def displayClaim(topicId, claimId):
+    user = getUserStatus()
     if not isTopicIdValid(topicId):
         return NotFoundMessage("Topic")
     if not isClaimIdValid(claimId):
         return NotFoundMessage("Claim")
     if not isTopicRelatedToClaim(topicId, claimId):
         return NotFoundMessage("Claim is not related to that topic")
-    if isUserLoggedIn():
-        loggedIn = True
-    else:
-        loggedIn = False
 
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
@@ -159,24 +209,24 @@ def displayClaim(topicId, claimId):
         LastUpdateTime = getClaimLastUpdateTime(ClaimId)
 
     db.close()
-    return render_template("Claim.html", topic=Topic, claim=Claim, replies=getAllReplies(claimId), loggedIn=loggedIn)
+    return render_template("Claim.html", user=user, topic=Topic, claim=Claim, replies=getAllReplies(claimId))
 
 
 # Page to write a claim
-@app.route('/<topicId>/new/claim', methods=["GET"])
+@ app.route('/<topicId>/new/claim', methods=["GET"])
 def newClaimPage(topicId):
-    if isTopicIdValid(topicId):
-        if isUserLoggedIn():
-            topicName = getTopicName(topicId)
-            return render_template("NewClaim.html", topicId=topicId, topicName=topicName, userId=getUserIDFromSession())
-        else:
-            # change it so it redirects you to login instead [CHANGE_NEEDED]
-            return redirect(url_for("homepage"))
-    return NotFoundMessage("Topic")
+    user = getUserStatus()
+    if not isTopicIdValid(topicId):
+        return NotFoundMessage("Topic")
+    if not user.LoggedIn:
+        return redirect(url_for("homepage"))
+
+    topicName = getTopicName(topicId)
+    return render_template("NewClaim.html", user=user, topicId=topicId, topicName=topicName, userId=getUserIDFromSession())
 
 
 # Submit a claim
-@app.route('/<topicId>/<userId>/new', methods=["POST"])
+@ app.route('/<topicId>/<userId>/new', methods=["POST"])
 def createClaim(topicId, userId):
     # This might need some testing, if a userid is not returned this might break the server? [CHANGE_NEEDED]
     if int(getUserIDFromSession()) != int(userId):
@@ -202,7 +252,7 @@ def createClaim(topicId, userId):
 
 
 # Submit a reply to a claim
-@app.route('/<topicId>/<claimId>/new/reply', methods=["POST"])
+@ app.route('/<topicId>/<claimId>/new/reply', methods=["POST"])
 def newClaimReply(topicId, claimId):
     if not isTopicIdValid(topicId):
         return NotFoundMessage("Topic")
@@ -235,7 +285,7 @@ def newClaimReply(topicId, claimId):
 
 
 # Submit a reply to a reply
-@app.route('/<topicId>/<claimId>/new/reply/<parentId>', methods=["POST"])
+@ app.route('/<topicId>/<claimId>/new/reply/<parentId>', methods=["POST"])
 def newReplyToReply(topicId, claimId, parentId):
     if not isTopicIdValid(topicId):
         return NotFoundMessage("Topic")
@@ -281,6 +331,24 @@ def NotFound():
     return render_template("404.html", content="Page")
 
 
+# Returns basic variables for the navigation bar
+def getUserStatus():
+    if isUserLoggedIn():
+        username = getUsername(getUserIDFromSession())
+        loggedIn = True
+        admin = isAdmin(getUserIDFromSession())
+    else:
+        username = "NULL"
+        loggedIn = False
+        admin = False
+
+    class Status:
+        Username = username
+        LoggedIn = loggedIn
+        Admin = admin
+    return Status
+
+
 # Returns a hashed password
 def hashPassword(password):
     return hashlib.sha512(password.encode('utf-8')).hexdigest()
@@ -321,6 +389,17 @@ def isAdmin(id):
         if row[0] == True:
             return True
         return False
+
+
+# Returns true if userId is in the database and false if not
+def isUserIdValid(id):
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    user = cursor.execute(
+        "select userName from user where userID=?", (id,))
+    for row in user:
+        return True
+    return False
 
 
 # Returns the date when the account was created

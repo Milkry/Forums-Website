@@ -1,0 +1,28 @@
+<!-- Register Form -->
+<div id="overlayRegister" class="overlay">
+    <form id="registerForm" onsubmit="register(event)" onreset="overlayOff('overlayRegister')">
+        <div class="accountContainer">
+            <h1 style="display: inline-block;">Register</h1>
+            <button type="reset" class="exitOverlayButton"><i class="fa fa-times fa-2x" aria-hidden="true"></i></button>
+            <hr class="hrForm">
+            <div id="statusMessage" class="passwordMismatch">
+                <i class="fa fa-times-circle" aria-hidden="true"></i>
+                <span><b style="color: var(--text2);">Password Mismatch</b></span>
+            </div>
+            <div id="inputFields">
+                <input type="text" placeholder="Username" name="registerUsername" id="registerUsername" minlength="3"
+                    maxlength="20" required>
+                <input type="password" onchange="validation()" placeholder="Password" name="registerPassword"
+                    id="registerPassword" minlength="4" required>
+                <input type="password" onchange="validation()" placeholder="Confirm Password" name="confirmPassword"
+                    id="confirmPassword" minlength="4" required>
+                <hr class="hrForm">
+            </div>
+            <div style="margin-bottom: 20px;">
+                <input type="checkbox" name="TermsAndPrivacy" id="TermsAndPrivacy" required></input>
+                <label>By creating an account you agree to our <a href="#">Terms & Privacy</a>.</label>
+            </div>
+            <button type="submit" class="formBtn" id="formBtn">Create an account</button>
+        </div>
+    </form>
+</div>

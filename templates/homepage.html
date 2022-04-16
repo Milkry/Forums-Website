@@ -13,13 +13,15 @@
 </head>
 
 <body
-    onload="load(`{{ url_for('static', filename='Templates/RegisterForm.html') }}`, `{{ url_for('static', filename='Templates/LoginForm.html') }}`)">
+    onload="load(`{{ url_for('static', filename='Templates/RegisterForm.html') }}`, `{{ url_for('static', filename='Templates/LoginForm.html') }}`, `{{ url_for('static', filename='Templates/MessageBoxes.html') }}`)">
     <!-- Navigation Bar -->
     <div class="navigationContainer">
         <button id="homeBtn" style="float: left;" onclick="location.href='/'" class="navigationBtn"><i
                 class="fa fa-home fa-lg" aria-hidden="true"></i></button>
         {% if user.Admin == True %}
         <button id="adminBtn" style="float: left;" onclick="location.href='/adminpanel'" class="navigationBtn"><b>Admin
+                Panel</b></button>
+        <button id="adminBtn" style="float: left;" onclick="location.href='/userpanel'" class="navigationBtn"><b>User
                 Panel</b></button>
         {% endif %}
         {% if user.Username != "NULL" %}
@@ -39,39 +41,17 @@
     <!-- Register & Login Forms -->
     <div id="registerContainer"></div>
     <div id="loginContainer"></div>
+    <div id="messageBoxContainer"></div>
 
-    <!--
-    <div id="unknownErrorBox"
-        style="display: none; color: white; background-color: red; padding: 15px; text-align: center;">
-        <b>Uh oh. Something went wrong! Please try again in a few moments</b>
-    </div>
-    <div id="missingDataBox"
-        style="display: none; color: white; background-color: red; padding: 15px; text-align: center;">
-        <b>Not enough data</b>
-    </div>
-
-    <div id="accountSuccessBox"
-        style="display: none; color: black; background-color: greenyellow; padding: 15px; text-align: center;">
-        <b>Account Created!</b>
-    </div>
-    <div id="accountExistsBox"
-        style="display: none; color: black; background-color: orange; padding: 15px; text-align: center;">
-        <b>Account with that username already exists!</b>
+    <div style="display: none;" id="ConfirmationPrompt" class="centerDiv confirmationPrompt">
+        <h2>Are you sure?</h2>
+        <div style="text-align: center;">
+            <button class="transBtn">No</button>
+            <button class="transBtn">Yes</button>
+        </div>
     </div>
 
-    <div id="loginSuccessfulBox"
-        style="display: none; color: black; background-color: greenyellow; padding: 15px; text-align: center;">
-        <b>Login Successful!</b>
-    </div>
-    <div id="loginFailedPasswordBox"
-        style="display: none; color: black; background-color: orange; padding: 15px; text-align: center;">
-        <b>Incorrect password</b>
-    </div>
-    <div id="loginFailedUsernameBox"
-        style="display: none; color: black; background-color: orange; padding: 15px; text-align: center;">
-        <b>Account is not in our records</b>
-    </div>
-    -->
+
 
     <!-- Create Topic -->
     <div id="overlayTopic" class="overlay">
@@ -110,6 +90,7 @@
         <div class="topicContainerTitle grid-container-topics">
             <span style="color: white; margin-left: 70px;"><b>Topic</b></span>
             <span style="color: white;" class="grid-content-center"><b>Latest Claim</b></span>
+            <span style="color: white;" class="grid-content-center"><b>Topic Creator</b></span>
             <span style="color: white;" class="grid-content-center"><b>Claims</b></span>
         </div>
         {% for topic in topics %}
@@ -118,7 +99,7 @@
             <div class="grid-container-topics">
                 <div onclick="location.href='/{{ topic.Id }}'" style="margin-left: 20px;"
                     class="topicContainer grid-content-middle">
-                    <span class="topic"><i class="fa fa-comments-o fa-4x topicIcon" aria-hidden="true"></i>{{ topic.Name
+                    <span class="topic"><i class="fa fa-book fa-4x topicIcon" aria-hidden="true"></i>{{ topic.Name
                         }}</span>
                 </div>
                 <div style="font-size: 15px;" class="topic grid-content-center">
@@ -126,7 +107,7 @@
                     <div onclick="location.href='/{{ topic.Id }}/{{ topic.Claim.Id }}'"
                         style="display: grid; grid-template-columns: 20% 80%; justify-items: center; align-items: center; text-align: center;"
                         class="topicContainer">
-                        <i style="margin-right: 10px; color: var(--primary);" class="fa fa-commenting-o fa-3x"
+                        <i style="margin-right: 10px; color: var(--primary);" class="fa fa-comments fa-3x"
                             aria-hidden="true"></i>
                         <div>
                             <span>Claim By: <b>{{ topic.Claim.Username }}</b></span>
@@ -139,8 +120,19 @@
                     {% endif %}
                 </div>
                 <div class="grid-content-center">
+                    <span>By <b>{{ topic.Creator }}</b></span>
+                </div>
+                <div class="grid-content-center">
                     <span>{{ topic.Claims }}</span>
                 </div>
+                {% if user.Admin == True %}
+                <div class="grid-content-center">
+                    <form action="/delete/topic/{{ topic.Id }}" method="POST">
+                        <button type="submit" class="transBtn"><i style="color: var(--remove);"
+                                class="fa fa-trash fa-lg" aria-hidden="true"></i></button>
+                    </form>
+                </div>
+                {% endif %}
             </div>
             <hr>
         </div>

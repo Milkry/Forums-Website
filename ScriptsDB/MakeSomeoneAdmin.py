@@ -3,7 +3,7 @@ import sqlite3
 db = sqlite3.connect("forums.db")
 cursor = db.cursor()
 
-user = input("Enter a username to make admin: ")
+user = input("Enter a username to make admin (Case-Sensitive): ")
 
 cursor.execute("update user set isAdmin=1 where userName=?", (user,))
 db.commit()

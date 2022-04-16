@@ -40,6 +40,18 @@
     display: none;
 }
 
+#overlayTopicList {
+    display: none;
+}
+
+#overlayMoveReply {
+    display: none;
+}
+
+#overlayRelatedClaims {
+    display: none;
+}
+
 #inputFields {
     text-align: center;
 }
@@ -193,6 +205,13 @@ input[type=password]:focus {
     float: right;
 }
 
+.confirmationPrompt {
+    background-color: var(--background2);
+    box-shadow: 10px 10px 10px 10px var(--containerShadow);
+    padding: 10px 30px 30px 30px;
+    border-radius: 15px;
+}
+
 .navigationContainer {
     background-color: var(--background2);
     box-shadow: 10px 10px 5px var(--containerShadow);
@@ -306,7 +325,12 @@ input[type=password]:focus {
 
 .grid-container-topics {
     display: grid;
-    grid-template-columns: 50% 30% 20%;
+    grid-template-columns: 40% 30% 20% 5% 5%;
+}
+
+.grid-container-claims {
+    display: grid;
+    grid-template-columns: 45% 10% 20% 20% 5%;
 }
 
 .grid-content-center {

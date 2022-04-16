@@ -9,7 +9,7 @@
         href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <script src="{{ url_for('static', filename='Scripts/global.js') }}"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <title>Admin Panel</title>
+    <title>User Panel</title>
 </head>
 
 <body
@@ -43,29 +43,18 @@
     <div id="loginContainer"></div>
 
     <div class="forumsContainer">
-        <h1 style="text-align: center;">Admin Panel</h1>
+        <h1 style="text-align: center;">User Panel</h1>
+        <h2 style="text-align: center;">In here you can remove/ban users from the site indefinitely</h2>
         <hr>
-        <form action="/adminpanel/add" method="POST">
-            <div>
-                <label style="vertical-align: middle; font-size: 20px;"><b>Add Admin:</b></label>
-                <input style="width: 25%; margin: 10px;" type="text" placeholder="Enter a username..."
-                    name="adminUsername" id="adminUsername" required>
-                <button type="submit" style="width: auto;" class="transBtn"><i style="color: var(--primary);"
-                        class="fa fa-plus fa-lg" aria-hidden="true"></i></button>
-            </div>
-        </form>
-        <br>
         <div>
-            <h2>Current Admins:</h2>
-            {% for admin in admins %}
-            {% if admin.Id|int() != user.Id|int() %}
-            <form action="/adminpanel/remove/{{ admin.Id }}" method="POST">
-                <button type="submit" class="transBtn"><i style="color: var(--remove);" class="fa fa-trash fa-lg"
+            <h2>Users:</h2>
+            {% for u in users %}
+            <form action="/delete/account/{{ u.Id }}" method="POST">
+                <button type="submit" class="transBtn"><i style="color: var(--remove);" class="fa fa-ban fa-lg"
                         aria-hidden="true"></i></button>
-                <span>{{ admin.Username }}</span>
+                <span>{{ u.Username }}</span>
                 <br>
             </form>
-            {% endif %}
             {% endfor %}
         </div>
         <hr>

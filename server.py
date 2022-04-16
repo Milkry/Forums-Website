@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for, render_template, request, session
+from flask import Flask, jsonify, redirect, url_for, render_template, request, session
 import sqlite3
 import hashlib
 
@@ -14,6 +14,11 @@ PATH = "./ScriptsDB/forums.db"
 @app.errorhandler(404)
 def page_not_found(e):
     return NotFound()
+
+
+@app.errorhandler(403)
+def page_is_forbidden(e):
+    return Forbidden()
 
 
 # Home
@@ -78,6 +83,28 @@ def signout():
     return redirect(url_for("homepage"))
 
 
+# User Panel
+@ app.route('/userpanel', methods=["GET"])
+def userPanel():
+    user = getUserStatus()
+    if not user.LoggedIn:
+        return redirect(url_for("homepage"))
+    if not user.Admin:
+        return redirect(url_for("homepage"))
+
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    users = cursor.execute(
+        "select userID, userName from user where isAdmin=0")
+    userList = []
+    for row in users:
+        class User:
+            Id = row[0]
+            Username = row[1]
+        userList.append(User)
+    return render_template("UserPanel.html", user=user, users=userList)
+
+
 # Admin Panel
 @ app.route('/adminpanel', methods=["GET"])
 def adminPanel():
@@ -134,6 +161,119 @@ def removeAdmin(adminId):
     db.commit()
     db.close()
     return redirect(url_for("adminPanel"))
+
+
+# Delete a topic as admin
+@app.route('/delete/topic/<topicId>', methods=["POST"])
+def deleteTopic(topicId):
+    if not isTopicIdValid(topicId):
+        return NotFoundMessage("Topic")
+
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    cursor.execute("PRAGMA foreign_keys = ON")
+    db.commit()
+    cursor.execute("delete from topic where topicID=?", (topicId,))
+    db.commit()
+    db.close()
+    return redirect(url_for("homepage"))
+
+
+# Delete a claim as admin
+@app.route('/delete/topic/<topicId>/claim/<claimId>', methods=["POST"])
+def deleteClaim(topicId, claimId):
+    if not isTopicIdValid(topicId):
+        return NotFoundMessage("Topic")
+    if not isClaimIdValid(claimId):
+        return NotFoundMessage("Claim")
+
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    cursor.execute("PRAGMA foreign_keys = ON")
+    db.commit()
+    cursor.execute("delete from claim where claimID=?", (claimId,))
+    db.commit()
+    db.close()
+    return redirect(url_for("displayClaimsOfTopic", topicId=topicId))
+
+
+# Move a claim as admin
+@app.route('/move/claim/<claimId>', methods=["POST"])
+def moveClaim(claimId):
+    newTopicId = request.form.get("newTopicId")
+    if not newTopicId:
+        return NotFound()
+    if not isTopicIdValid(newTopicId):
+        return NotFoundMessage("Topic")
+    if not isClaimIdValid(claimId):
+        return NotFoundMessage("Claim")
+
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    cursor.execute("PRAGMA foreign_keys = ON")
+    db.commit()
+    cursor.execute("update claim set topic=? where claimId=?",
+                   (newTopicId, claimId,))
+    db.commit()
+    db.close()
+    return redirect(url_for("displayClaimsOfTopic", topicId=newTopicId))
+
+
+# Delete a reply as admin
+@app.route('/delete/topic/<topicId>/claim/<claimId>/reply/<replyId>', methods=["POST"])
+def deleteReply(topicId, claimId, replyId):
+    if not isTopicIdValid(topicId):
+        return NotFoundMessage("Topic")
+    if not isClaimIdValid(claimId):
+        return NotFoundMessage("Claim")
+    # Validate replyId [CHANGE_NEEDED]
+
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    cursor.execute("PRAGMA foreign_keys = ON")
+    db.commit()
+    deletedReplyText = "[REMOVED]"
+    cursor.execute("update replyText set text=? where replyTextID=?",
+                   (deletedReplyText, replyId,))
+    #cursor.execute("delete from replyText where replyTextID=?", (replyId,))
+    db.commit()
+    db.close()
+    return redirect(url_for("displayClaim", topicId=topicId, claimId=claimId))
+
+
+# Move a reply as admin
+@app.route('/move/topic/<topicId>/reply/<replyId>', methods=["POST"])
+def moveReply(topicId, replyId):
+    # validate replyId [CHANGE_NEEDED]
+    newClaimId = request.form.get("newClaimId")
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    cursor.execute("PRAGMA foreign_keys = ON")
+    db.commit()
+    cursor.execute("update replyToClaim set claim=? where reply=?",
+                   (newClaimId, replyId,))
+    db.commit()
+    db.close()
+    return redirect(url_for("displayClaim", topicId=topicId, claimId=newClaimId))
+
+
+# Delete a user as admin
+@app.route('/delete/account/<userId>', methods=["POST"])
+def deleteAccount(userId):
+    user = getUserStatus()
+    if not user.Admin:
+        return Forbidden()
+    if not isUserIdValid(userId):
+        return NotFoundMessage("User")
+
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    cursor.execute("PRAGMA foreign_keys = ON")
+    db.commit()
+    cursor.execute("delete from user where userID=?", (userId,))
+    db.commit()
+    db.close()
+    return redirect(url_for("userPanel"))
 
 
 # View a topic
@@ -209,7 +349,7 @@ def displayClaim(topicId, claimId):
         LastUpdateTime = getClaimLastUpdateTime(ClaimId)
 
     db.close()
-    return render_template("Claim.html", user=user, topic=Topic, claim=Claim, replies=getAllReplies(claimId))
+    return render_template("Claim.html", user=user, topicList=getAllTopics(), topic=Topic, claimList=getAllClaimsInTopic(Topic.TopicId), claim=Claim, replies=getAllReplies(claimId))
 
 
 # Page to write a claim
@@ -221,12 +361,23 @@ def newClaimPage(topicId):
     if not user.LoggedIn:
         return redirect(url_for("homepage"))
 
-    topicName = getTopicName(topicId)
-    return render_template("NewClaim.html", user=user, topicId=topicId, topicName=topicName, userId=getUserIDFromSession())
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    claimList = []
+    claims = cursor.execute(
+        "select claimID, postingUser, text from claim where topic=?", (topicId,))
+    for row in claims:
+        class Claim:
+            Id = row[0]
+            Username = getUsername(row[1])
+            Text = row[2][:25] + str("...")
+        claimList.append(Claim)
+
+    return render_template("NewClaim.html", user=user, topicId=topicId, topicName=getTopicName(topicId), claims=claimList)
 
 
 # Submit a claim
-@ app.route('/<topicId>/<userId>/new', methods=["POST"])
+@ app.route('/<topicId>/<userId>/new/claim', methods=["POST"])
 def createClaim(topicId, userId):
     # This might need some testing, if a userid is not returned this might break the server? [CHANGE_NEEDED]
     if int(getUserIDFromSession()) != int(userId):
@@ -237,18 +388,32 @@ def createClaim(topicId, userId):
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
     text = request.form["claimText"]
+    relatedClaim = request.form.getlist("claimToClaimRelation")
+    relatedClaimType = request.form.get("claimToClaimRelationType")
+
+    # If data is missing (relatedClaim should be followed by a relatedClaimType)
+    if relatedClaim and not relatedClaimType:
+        return BadRequest()
+    if relatedClaimType and not relatedClaim:
+        return BadRequest()
+
     currentTime = getCurrentJulianTime()
     cursor.execute("insert into claim (topic, postingUser, creationTime, updateTime, text) values (?, ?, ?, ?, ?)",
                    (topicId, userId, currentTime, currentTime, text,))
+    db.commit()
     claim = cursor.execute(
         "select claimID from claim where creationTime=?", (currentTime,))  # Instead of searching the database using the claimText, use the creationTime [CHANGE_NEEDED]
     for row in claim:
         claimId = row[0]
+    for claimRelationId in relatedClaim:  # Will create a claimToClaim relationship if thet list is not empty
+        cursor.execute("insert into claimToClaim (first, second, claimRelType) values (?, ?, ?)",
+                       (claimId, claimRelationId, relatedClaimType,))
+        db.commit()
     cursor.execute(
         "update topic set updateTime=julianday('now') where topicID=?", (topicId,))
     db.commit()
     db.close()
-    return redirect("/" + str(topicId) + "/" + str(claimId))
+    return redirect(url_for("displayClaim", topicId=topicId, claimId=claimId))
 
 
 # Submit a reply to a claim
@@ -281,7 +446,7 @@ def newClaimReply(topicId, claimId):
                    (creationTime, claimId,))
     db.commit()
     db.close()
-    return redirect("/" + str(topicId) + "/" + str(claimId))
+    return redirect(url_for("displayClaim", topicId=topicId, claimId=claimId))
 
 
 # Submit a reply to a reply
@@ -320,7 +485,39 @@ def newReplyToReply(topicId, claimId, parentId):
     return redirect("/" + str(topicId) + "/" + str(claimId))
 
 
+# Retrieves a list of related claims
+@app.route('/claims/related/get/<claimId>', methods=["GET"])
+def getRelatedClaims(claimId):
+    if not isClaimIdValid(claimId):
+        return NotFoundMessage("Claim")
+
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    claimRelations = []
+    claims = cursor.execute(
+        "select first, second, claimRelType from claimToClaim inner join claimToClaimType on claimToClaim.claimRelType = claimToClaimType.claimRelTypeID")
+    for row in claims:
+        print(row)
+        '''firstClaim = row[0]
+        secondClaim = row[1]
+        type = row[2]
+        claimRelations.append(
+            {"claim1": firstClaim, "claim2": secondClaim, "type": type})'''
+    db.close()
+    return jsonify({"relations": claimRelations})
+
+
 ######################### HELPER FUNCTIONS #########################
+# Error 400 page (Bad Request)
+def BadRequest():
+    return render_template("400.html")
+
+
+# Error 403 page (Forbidden request)
+def Forbidden():
+    return render_template("403.html")
+
+
 # Error 404 page with a custom content missing message
 def NotFoundMessage(content):
     return render_template("404.html", content=content)
@@ -334,15 +531,18 @@ def NotFound():
 # Returns basic variables for the navigation bar
 def getUserStatus():
     if isUserLoggedIn():
-        username = getUsername(getUserIDFromSession())
+        id = getUserIDFromSession()
+        username = getUsername(id)
         loggedIn = True
         admin = isAdmin(getUserIDFromSession())
     else:
+        id = 0
         username = "NULL"
         loggedIn = False
         admin = False
 
     class Status:
+        Id = id
         Username = username
         LoggedIn = loggedIn
         Admin = admin
@@ -367,15 +567,14 @@ def getUserIDFromSession():
 
 
 # Returns the username of the user when logged in
-# Instead of searching the database for the username, save it in the session and get it from there [CHANGE_NEEDED]
 def getUsername(id):
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
     user = cursor.execute(
         "select userName from user where userID=?", (id,))
+    username = "[user-deleted]"  # if no user is found
     for row in user:
         username = row[0]
-    db.close()
     return username
 
 
@@ -395,6 +594,8 @@ def isAdmin(id):
 def isUserIdValid(id):
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
+    if not str(id).isnumeric():
+        return False
     user = cursor.execute(
         "select userName from user where userID=?", (id,))
     for row in user:
@@ -410,7 +611,7 @@ def getUserJoinDate(id):
         "select creationTime from user where userID=?", (id,))
     for row in date:
         return convertJulianTime(row[0], "DATE")
-    return "User doesn't exist"
+    return 0
 
 
 # Returns the total number of posts and replies the user has created
@@ -476,6 +677,27 @@ def getAllTopics():
     return topicList
 
 
+def getAllClaimsInTopic(topicId):
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    claims = cursor.execute(
+        "select claimID, postingUser, text from claim where topic=? order by updateTime desc", (topicId,))
+    claimList = []
+    for row in claims:
+        claimId = row[0]
+        poster = row[1]
+        text = row[2]
+
+        class Claim:
+            Id = claimId
+            Creator = getUsername(poster)
+            Text = text[:25] + str("...")
+        claimList.append(Claim)
+
+    db.close()
+    return claimList
+
+
 # Returns the text of a parent id
 def getParentDetails(replyId):
     db = sqlite3.connect(PATH)
@@ -512,7 +734,6 @@ def isReplyRelatedToClaim(replyTextId, claimId):
             "select parent from replyToReply where reply=?", (replyTextId,))
         for row in reply:  # Executes once
             parentId = row[0]
-        print("Processing parentId[" + str(parentId) + "]")
         # If parentId is -1 then this replyTextId is not even in the replyToReply table
         # which means its a claim reply not a reply to reply. Therefore we should just stop as its not related
         if parentId == -1:
@@ -528,8 +749,6 @@ def isReplyRelatedToClaim(replyTextId, claimId):
         # until we find a parent that is a claim reply, which will contain a claimId
         for row in claim:
             id = row[0]
-            print("Found a claimId..." + str(id) +
-                  ". Now will compare ClaimId[" + str(claimId) + "] == id[" + str(id) + "]")
             if int(claimId) == int(id):
                 found = True
                 STOP = True
@@ -538,7 +757,6 @@ def isReplyRelatedToClaim(replyTextId, claimId):
                 STOP = True
         replyTextId = parentId
 
-    print(found)
     if found:
         return True
     return False
@@ -581,7 +799,6 @@ def getAllReplies(claimId):
     allRepliesOfReplies = cursor.execute("select reply from replyToReply")
     temp = []
     for row in allRepliesOfReplies:  # For every reply of reply
-        print("Checking for..." + str(row[0]))
         if isReplyRelatedToClaim(row[0], claimId):
             temp.append(row[0])
 
@@ -644,24 +861,23 @@ def getReplyType(replyId, typeOfReply):
 def isTopicIdValid(id):
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
+    if not str(id).isnumeric():
+        return False
+    # Convert this into a EXISTS [CHANGE_NEEDED]
     topic = cursor.execute("select * from topic where topicID=?", (id,))
     for row in topic:
-        db.close()
         return True
-    db.close()
     return False
 
 
-# Returns topic name based on the topicId
+# Returns topic name based on the topicId (Assumed that the id given is valid)
 def getTopicName(id):
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
     topic = cursor.execute(
         "select topicName from topic where topicID=?", (id,))
     for row in topic:
-        db.close()
         return row[0]
-    db.close()
     return "NULL"
 
 
@@ -679,6 +895,8 @@ def getClaimLastUpdateTime(claimId):
 def isClaimIdValid(id):
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
+    if not str(id).isnumeric():
+        return False
     claim = cursor.execute("select * from claim where claimID=?", (id,))
     for row in claim:
         db.close()

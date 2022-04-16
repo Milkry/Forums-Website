@@ -5,13 +5,16 @@ var box = null;
 var notificationInterval = 3000; // milliseconds
 var disabledButtonsColor = disabledButtonsColor;
 
-function load(register, login) {
+function load(register, login, messageBoxes) {
     mutex = false;
     $(function () {
         $("#registerContainer").load(register);
     });
     $(function () {
         $("#loginContainer").load(login);
+    });
+    $(function () {
+        $("#messageBoxContainer").load(messageBoxes);
     });
 }
 
@@ -194,6 +197,31 @@ function createTopic(e) {
         button.disabled = false;
         button.style.background = originalButtonColor; // Restores the original color
         overlayOff("overlayTopic"); // Close the form
+        mutex = false;
+    }
+    request.send();
+}
+
+function loadRelatedClaims(id) {
+    if (mutex) return;
+    mutex = true;
+
+    let button = document.getElementById("relatedClaimsBtn");
+    let originalButtonColor = button.style.background;
+    button.disabled = true;
+    button.style.background = disabledButtonsColor;
+    let data =
+    {
+        claimId: id,
+    };
+
+    var request = new XMLHttpRequest();
+    request.open("GET", "/claims/related/get/" + data.claimId, true);
+    request.onload = () => {
+        let claims = JSON.parse(request.response).relations;
+        console.log(claims);
+        button.disabled = false;
+        button.style.background = originalButtonColor; // Restores the original color
         mutex = false;
     }
     request.send();

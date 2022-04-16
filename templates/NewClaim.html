@@ -12,14 +12,47 @@
     <title>Claims</title>
 </head>
 
+<script>
+    var expanded = false;
+
+    function openDropdown() {
+        var options = document.getElementById("options");
+        if (!expanded) {
+            options.style.display = "block";
+            expanded = true;
+        } else {
+            options.style.display = "none";
+            expanded = false;
+        }
+    }
+
+    function enableTypes(length) {
+        let checked = false;
+        for (let i = 1; i <= length; i++) {
+            if ($('#claimToClaimRelation_' + i).is(':checked')) {
+                checked = true;
+            }
+        }
+        if (checked) {
+            $('#claimToClaimRelationType').prop('disabled', false);
+        }
+        else {
+            $('#claimToClaimRelationType').prop('disabled', true);
+            $('#claimToClaimRelationType')[0].selectedIndex = 0;
+        }
+    }
+</script>
+
 <body
-    onload="load(`{{ url_for('static', filename='Templates/RegisterForm.html') }}`, `{{ url_for('static', filename='Templates/LoginForm.html') }}`)">
+    onload="load(`{{ url_for('static', filename='Templates/RegisterForm.html') }}`, `{{ url_for('static', filename='Templates/LoginForm.html') }}`, `{{ url_for('static', filename='Templates/MessageBoxes.html') }}`)">
     <!-- Navigation Bar -->
     <div class="navigationContainer">
         <button id="homeBtn" style="float: left;" onclick="location.href='/'" class="navigationBtn"><i
                 class="fa fa-home fa-lg" aria-hidden="true"></i></button>
         {% if user.Admin == True %}
         <button id="adminBtn" style="float: left;" onclick="location.href='/adminpanel'" class="navigationBtn"><b>Admin
+                Panel</b></button>
+        <button id="adminBtn" style="float: left;" onclick="location.href='/userpanel'" class="navigationBtn"><b>User
                 Panel</b></button>
         {% endif %}
         {% if user.Username != "NULL" %}
@@ -42,14 +75,42 @@
 
     <!-- Create Claim -->
     <div class="forumsContainer">
-        <div id="forumHierarchy"><b>You're posting a claim at:</b> {{ topicName }}</div>
-        <form action="/{{ topicId }}/{{ userId }}/new" method="POST">
+        <div id="forumHierarchy"><b>You're posting a new claim at:</b> {{ topicName }}</div>
+        <form action="/{{ topicId }}/{{ user.Id }}/new/claim" method="POST">
             <div id="inputFields">
                 <hr class="hrForm">
+                <!-- Text -->
                 <textarea rows="15" placeholder="Describe your claim (minimum 15 characters)..." minlength="15"
                     name="claimText" id="claimText" autofocus required></textarea>
+                <!-- Claim Relation -->
+                <div class="dropdown">
+                    <div onclick="openDropdown()" class="dropdown-container">
+                        <select style="padding: 10px;">
+                            <option>Select claim(s) to relate to (Optional)</option>
+                        </select>
+                        <div class="overSelect"></div>
+                    </div>
+                    <div id="options">
+                        {% for claim in claims %}
+                        <label onclick="enableTypes('{{ claims|length }}')">
+                            <input type="checkbox" id="claimToClaimRelation_{{ loop.index }}"
+                                name="claimToClaimRelation" value="{{ claim.Id }}" />
+                            <i style="margin: 0 5px 0 5px; color: var(--primary);" class="fa fa-comments fa-lg"
+                                aria-hidden="true"></i>
+                            <span>{{ claim.Text }} [By {{ claim.Username }}]</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                <!-- Relationship Type -->
+                <select disabled name="claimToClaimRelationType" id="claimToClaimRelationType" class="relateClaim"
+                    required>
+                    <option value="" disabled hidden selected="selected">Type of Relationship (Required)</option>
+                    <option value="1">Opposed</option>
+                    <option value="2">Equivalent</option>
+                </select>
                 <hr class="hrForm">
-                <button type="submit" style="width: 50%;" class="formBtn" id="formBtn">Submit Claim</button>
+                <button type="submit" style="width: 40%;" class="formBtn" id="formBtn">Create Claim</button>
             </div>
         </form>
     </div>
@@ -62,6 +123,50 @@
         width: 95%;
         padding: 10px;
         border-radius: 10px;
+    }
+
+    .relateClaim {
+        margin: 10px;
+        padding: 10px;
+    }
+
+    .dropdown {
+        margin: 0 auto;
+        margin-top: 20px;
+        margin-bottom: 20px;
+        width: 30%;
+        text-align: start;
+    }
+
+    .dropdown-container {
+        position: relative;
+    }
+
+    .dropdown-container select {
+        width: 100%;
+        font-weight: bold;
+    }
+
+    .overSelect {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+    }
+
+    #options {
+        border: 1px black solid;
+        display: none;
+    }
+
+    #options label {
+        display: block;
+        padding: 10px;
+    }
+
+    #options label:hover {
+        background-color: var(--link);
     }
 </style>
 

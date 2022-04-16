@@ -40,13 +40,15 @@
 </script>
 
 <body
-    onload="load(`{{ url_for('static', filename='Templates/RegisterForm.html') }}`, `{{ url_for('static', filename='Templates/LoginForm.html') }}`)">
+    onload="load(`{{ url_for('static', filename='Templates/RegisterForm.html') }}`, `{{ url_for('static', filename='Templates/LoginForm.html') }}`, `{{ url_for('static', filename='Templates/MessageBoxes.html') }}`)">
     <!-- Navigation Bar -->
     <div class="navigationContainer">
         <button id="homeBtn" style="float: left;" onclick="location.href='/'" class="navigationBtn"><i
                 class="fa fa-home fa-lg" aria-hidden="true"></i></button>
         {% if user.Admin == True %}
         <button id="adminBtn" style="float: left;" onclick="location.href='/adminpanel'" class="navigationBtn"><b>Admin
+                Panel</b></button>
+        <button id="adminBtn" style="float: left;" onclick="location.href='/userpanel'" class="navigationBtn"><b>User
                 Panel</b></button>
         {% endif %}
         {% if user.Username != "NULL" %}
@@ -83,8 +85,32 @@
             <div style="background-color: var(primary); border-radius: 15px; padding: 10px;">
                 {% if user.LoggedIn == True %}
                 {% if user.Admin == True %}
-                <button id="deleteClaim" class="btn"><i class="fa fa-trash fa-lg" aria-hidden="true"></i></button>
-                <button id="moveClaim" class="btn"><i class="fa fa-arrows fa-lg" aria-hidden="true"></i></button>
+                <form style="display: inline-block;" method="POST">
+                    <button type="submit" formaction="/delete/topic/{{ topic.TopicId }}/claim/{{ claim.ClaimId }}"
+                        id="deleteClaim" class="btn"><i class="fa fa-trash fa-lg" aria-hidden="true"></i></button>
+                </form>
+                <button onclick="overlayOn('overlayTopicList')" id="moveClaim" class="btn"><i class="fa fa-arrows fa-lg"
+                        aria-hidden="true"></i></button>
+                <div id="overlayTopicList" class="overlay">
+                    <form action="/move/claim/{{ claim.ClaimId }}" method="POST"
+                        onreset="overlayOff('overlayTopicList')">
+                        <button type="reset" class="exitOverlayButton"
+                            style="background-color: var(--primary); color: var(--icon2);"><i class="fa fa-times fa-2x"
+                                aria-hidden="true"></i></button>
+                        <div class="centerDiv moveClaimContainer">
+                            <label style="font-size: 20px; margin: 5px;" for="newTopicId">Move Claim To:</label><br>
+                            <select name="newTopicId" id="newTopicId" style="padding: 10px; margin: 10px;" required>
+                                <option value="" disabled hidden selected="selected">None</option>
+                                {% for t in topicList %}
+                                {% if t.Id|int() != topic.TopicId|int() %}
+                                <option value="{{ t.Id }}">{{ t.Name }} [By {{ t.Creator }}]</option>
+                                {% endif %}
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="formBtn">Confirm</button>
+                        </div>
+                    </form>
+                </div>
                 {% endif %}
                 <button class="btn" onclick="moveTo('ReplyToClaimContainer')">Reply To Claim</button>
                 {% endif %}
@@ -172,8 +198,37 @@
                     <div>
                         {% if user.LoggedIn == True %}
                         {% if user.Admin == True %}
-                        <button id="deleteClaim" class="btn"><i class="fa fa-trash fa-lg"
-                                aria-hidden="true"></i></button>
+                        <form action="/delete/topic/{{ topic.TopicId }}/claim/{{ claim.ClaimId }}/reply/{{ reply.Id }}"
+                            method="POST" style="display: inline-block;">
+                            <button id="deleteClaim" class="btn"><i class="fa fa-trash fa-lg"
+                                    aria-hidden="true"></i></button>
+                        </form>
+                        {% if reply.isReplyToReply == False %}
+                        <button onclick="overlayOn('overlayMoveReply')" id="moveReply" class="btn"><i
+                                class="fa fa-arrows fa-lg" aria-hidden="true"></i></button>
+                        <div id="overlayMoveReply" class="overlay">
+                            <form action="/move/topic/{{ topic.TopicId }}/reply/{{ reply.Id }}" method="POST"
+                                onreset="overlayOff('overlayMoveReply')">
+                                <button type="reset" class="exitOverlayButton"
+                                    style="background-color: var(--primary); color: var(--icon2);"><i
+                                        class="fa fa-times fa-2x" aria-hidden="true"></i></button>
+                                <div class="centerDiv moveClaimContainer">
+                                    <label style="font-size: 20px; margin: 5px;" for="newClaimId">Move Reply
+                                        To:</label><br>
+                                    <select name="newClaimId" id="newClaimId" style="padding: 10px; margin: 10px;"
+                                        required>
+                                        <option value="" disabled hidden selected="selected">None</option>
+                                        {% for cl in claimList %}
+                                        {% if cl.Id|int() != claim.ClaimId|int() %}
+                                        <option value="{{ cl.Id }}">{{ cl.Text }} [By {{ cl.Creator }}]</option>
+                                        {% endif %}
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit" class="formBtn">Confirm</button>
+                                </div>
+                            </form>
+                        </div>
+                        {% endif %}
                         {% endif %}
                         <button class="btn" onclick="showReplyForm('replyTo_{{ reply.Id }}')">Reply</button>
                         {% endif %}
@@ -182,7 +237,11 @@
                 {% if reply.isReplyToReply == True %}
                 <div class="quoteReply">{{ reply.ReplyingToText }}</div>
                 {% endif %}
+                {% if reply.Text|string() == "[REMOVED]" %}
+                <p class="claimText" style="text-align: center;"><b>{{ reply.Text }}</b></p>
+                {% else %}
                 <p class="claimText">{{ reply.Text }}</p>
+                {% endif %}
             </div>
         </div>
         <!-- Submit a Reply To a Reply Form -->
@@ -246,6 +305,13 @@
         width: 95%;
         padding: 10px;
         border-radius: 10px;
+    }
+
+    .moveClaimContainer {
+        background-color: var(--background2);
+        padding: 20px;
+        text-align: center;
+        border: 3px solid var(--border);
     }
 
     .replyTypeLabel {

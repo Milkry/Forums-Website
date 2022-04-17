@@ -2,8 +2,11 @@
 <div id="overlayLogin" class="overlay">
     <form id="loginForm" onsubmit="login(event)" onreset="overlayOff('overlayLogin')">
         <div class="accountContainer">
-            <h1 style="display: inline-block;">Login</h1>
-            <button type="reset" class="exitOverlayButton"><i class="fa fa-times fa-2x" aria-hidden="true"></i></button>
+            <div class="flex-container-space-between">
+                <h1 style="display: inline-block;">Login</h1>
+                <button type="reset" class="exitOverlayButton"><i class="fa fa-times fa-2x"
+                        aria-hidden="true"></i></button>
+            </div>
             <div id="inputFields">
                 <hr class="hrForm">
                 <!-- RESTRICT THE USERNAME TO ONLY HAVE CHARACTERS AND A "_" nothing else [CHANGE_NEEDED] -->

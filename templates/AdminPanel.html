@@ -38,37 +38,40 @@
         {% endif %}
     </div>
 
-    <!-- Register & Login Forms -->
-    <div id="registerContainer"></div>
-    <div id="loginContainer"></div>
+    <div id="mainContainer">
+        <!-- Register & Login Forms -->
+        <div id="registerContainer"></div>
+        <div id="loginContainer"></div>
+        <div id="messageBoxContainer"></div>
 
-    <div class="forumsContainer">
-        <h1 style="text-align: center;">Admin Panel</h1>
-        <hr>
-        <form action="/adminpanel/add" method="POST">
-            <div>
-                <label style="vertical-align: middle; font-size: 20px;"><b>Add Admin:</b></label>
-                <input style="width: 25%; margin: 10px;" type="text" placeholder="Enter a username..."
-                    name="adminUsername" id="adminUsername" required>
-                <button type="submit" style="width: auto;" class="transBtn"><i style="color: var(--primary);"
-                        class="fa fa-plus fa-lg" aria-hidden="true"></i></button>
-            </div>
-        </form>
-        <br>
-        <div>
-            <h2>Current Admins:</h2>
-            {% for admin in admins %}
-            {% if admin.Id|int() != user.Id|int() %}
-            <form action="/adminpanel/remove/{{ admin.Id }}" method="POST">
-                <button type="submit" class="transBtn"><i style="color: var(--remove);" class="fa fa-trash fa-lg"
-                        aria-hidden="true"></i></button>
-                <span>{{ admin.Username }}</span>
-                <br>
+        <div class="forumsContainer">
+            <h1 style="text-align: center;">Admin Panel</h1>
+            <hr>
+            <form action="/adminpanel/add" method="POST">
+                <div>
+                    <label style="vertical-align: middle; font-size: 20px;"><b>Add Admin:</b></label>
+                    <input style="width: 25%; margin: 10px;" type="text" placeholder="Enter a username..."
+                        name="adminUsername" id="adminUsername" required>
+                    <button title="Add" type="submit" style="width: auto;" class="transBtn"><i
+                            style="color: var(--primary);" class="fa fa-plus fa-lg" aria-hidden="true"></i></button>
+                </div>
             </form>
-            {% endif %}
-            {% endfor %}
+            <br>
+            <div>
+                <h2>Current Admins:</h2>
+                {% for admin in admins %}
+                {% if admin.Id|int() != user.Id|int() %}
+                <form action="/adminpanel/remove/{{ admin.Id }}" method="POST">
+                    <button title="Demote" type="submit" class="transBtn"><i style="color: var(--remove);"
+                            class="fa fa-trash fa-lg" aria-hidden="true"></i></button>
+                    <span>{{ admin.Username }}</span>
+                    <br>
+                </form>
+                {% endif %}
+                {% endfor %}
+            </div>
+            <hr>
         </div>
-        <hr>
     </div>
 </body>
 

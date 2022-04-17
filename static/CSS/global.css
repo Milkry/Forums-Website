@@ -52,6 +52,10 @@
     display: none;
 }
 
+#overlayAdvancedSearch {
+    display: none;
+}
+
 #inputFields {
     text-align: center;
 }
@@ -61,6 +65,10 @@
     vertical-align: middle;
     margin: 20px;
     font-size: 30px;
+}
+
+#mainContainer {
+    margin-top: 65px;
 }
 /* ##################################################### */
 
@@ -82,12 +90,6 @@ h1, h2, h3, h4, h5, h6, p, span, small {
 a {
     color: var(--link);
     cursor: pointer;
-}
-
-hr {
-    border: 2px solid #929292;
-    border-radius: 50%;
-    margin: 10px 25px 10px 25px;
 }
 
 input[type=text],
@@ -131,7 +133,7 @@ input[type=password]:focus {
     border-radius: 25px;
     box-shadow: 10px 10px 5px var(--containerShadow);
     padding: 30px;
-    margin-top: 40px;
+    margin-top: 100px;
     margin-left: 10%;
     margin-right: 10%;
     margin-bottom: 20px;
@@ -140,7 +142,7 @@ input[type=password]:focus {
 .searchField {
     background-color: var(--form);
     vertical-align: middle;
-    border: none;
+    border-radius: 10px;
     width: auto;
     margin: 5px;
     padding: 10px;
@@ -150,6 +152,29 @@ input[type=password]:focus {
     color: var(--icon);
     vertical-align: middle;
     margin: 5px;
+}
+
+.resultsContainer {
+    cursor: pointer;
+}
+
+.resultsContainer:active,
+.resultsContainer:hover {
+    background-color: var(--highlight);
+}
+
+.resultsIcon {
+    color: var(--primary);
+    vertical-align: middle;
+    margin: 5px;
+}
+
+.advancedSearch {
+    background-color: var(--background2);
+    border: 5px solid black;
+    border-radius: 10px;
+    margin: 15px;
+    padding: 20px;
 }
 
 .passwordMismatch {
@@ -163,7 +188,7 @@ input[type=password]:focus {
 }
 
 .hrForm {
-    border: 2px solid #929292;
+    border: 1px solid #929292;
     border-radius: 50%;
     margin-bottom: 22px;
     margin-left: 25px;
@@ -182,7 +207,6 @@ input[type=password]:focus {
     color: var(--icon);
     background-color: transparent;
     border: none;
-    float: right;
     cursor: pointer;
     padding: 15px;
     opacity: 0.85;
@@ -191,6 +215,9 @@ input[type=password]:focus {
 .exitOverlayButton:active,
 .exitOverlayButton:hover {
     opacity: 1;
+    background-color: var(--highlight);
+    box-shadow: 0 0 5px 5px var(--highlight);
+    border-radius: 10px;
 }
 
 .accountContainer {
@@ -217,6 +244,9 @@ input[type=password]:focus {
     box-shadow: 10px 10px 5px var(--containerShadow);
     text-align: right;
     display: block;
+    position: fixed;
+    top: 0;
+    width: 100%;
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
 }
@@ -333,14 +363,14 @@ input[type=password]:focus {
     grid-template-columns: 45% 10% 20% 20% 5%;
 }
 
+.grid-container-relations {
+    display: grid;
+    grid-template-columns: 49% 2% 49%;
+}
+
 .grid-content-center {
     display: grid;
     justify-items: center;
-    align-items: center;
-}
-
-.grid-content-middle {
-    display: grid;
     align-items: center;
 }
 /* ##################################################### */

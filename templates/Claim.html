@@ -65,236 +65,250 @@
         {% endif %}
     </div>
 
-    <!-- Register & Login Forms -->
-    <div id="registerContainer"></div>
-    <div id="loginContainer"></div>
+    <div id="mainContainer">
+        <!-- Register & Login Forms -->
+        <div id="registerContainer"></div>
+        <div id="loginContainer"></div>
+        <div id="messageBoxContainer"></div>
 
-    <div class="forumsContainer">
-        <!-- Hierarchy -->
-        <div id="forumHierarchy" class="flex-container-space-between">
-            <div>
-                <button id="homeBtn" onclick="location.href='/'" class="forumHierarchyButton">
-                    <i class="fa fa-home fa-2x" aria-hidden="true"></i>
-                </button>
-                <i class="fa fa-long-arrow-right" aria-hidden="true"></i>
-                <span style="cursor: pointer;" onclick="location.href='/{{ topic.TopicId }}'">{{ topic.TopicName
-                    }}</span>
-                <i class="fa fa-long-arrow-right" aria-hidden="true"></i>
-                <span>{{ claim.Username }}</span>
-            </div>
-            <div style="background-color: var(primary); border-radius: 15px; padding: 10px;">
-                {% if user.LoggedIn == True %}
-                {% if user.Admin == True %}
-                <form style="display: inline-block;" method="POST">
-                    <button type="submit" formaction="/delete/topic/{{ topic.TopicId }}/claim/{{ claim.ClaimId }}"
-                        id="deleteClaim" class="btn"><i class="fa fa-trash fa-lg" aria-hidden="true"></i></button>
-                </form>
-                <button onclick="overlayOn('overlayTopicList')" id="moveClaim" class="btn"><i class="fa fa-arrows fa-lg"
-                        aria-hidden="true"></i></button>
-                <div id="overlayTopicList" class="overlay">
-                    <form action="/move/claim/{{ claim.ClaimId }}" method="POST"
-                        onreset="overlayOff('overlayTopicList')">
-                        <button type="reset" class="exitOverlayButton"
-                            style="background-color: var(--primary); color: var(--icon2);"><i class="fa fa-times fa-2x"
-                                aria-hidden="true"></i></button>
-                        <div class="centerDiv moveClaimContainer">
-                            <label style="font-size: 20px; margin: 5px;" for="newTopicId">Move Claim To:</label><br>
-                            <select name="newTopicId" id="newTopicId" style="padding: 10px; margin: 10px;" required>
-                                <option value="" disabled hidden selected="selected">None</option>
-                                {% for t in topicList %}
-                                {% if t.Id|int() != topic.TopicId|int() %}
-                                <option value="{{ t.Id }}">{{ t.Name }} [By {{ t.Creator }}]</option>
-                                {% endif %}
-                                {% endfor %}
-                            </select>
-                            <button type="submit" class="formBtn">Confirm</button>
-                        </div>
+        <div class="forumsContainer">
+            <!-- Hierarchy -->
+            <div id="forumHierarchy" class="flex-container-space-between">
+                <div>
+                    <button id="homeBtn" onclick="location.href='/'" class="forumHierarchyButton">
+                        <i class="fa fa-home fa-2x" aria-hidden="true"></i>
+                    </button>
+                    <i class="fa fa-long-arrow-right" aria-hidden="true"></i>
+                    <span style="cursor: pointer;" onclick="location.href='/{{ topic.TopicId }}'">{{ topic.TopicName
+                        }}</span>
+                    <i class="fa fa-long-arrow-right" aria-hidden="true"></i>
+                    <span>{{ claim.Username }}</span>
+                </div>
+                <div style="background-color: var(primary); border-radius: 15px; padding: 10px;">
+                    {% if user.LoggedIn == True %}
+                    {% if user.Admin == True %}
+                    <form style="display: inline-block;" method="POST">
+                        <button title="Delete Claim" type="submit"
+                            formaction="/delete/topic/{{ topic.TopicId }}/claim/{{ claim.ClaimId }}" id="deleteClaim"
+                            class="btn"><i class="fa fa-trash fa-lg" aria-hidden="true"></i></button>
                     </form>
-                </div>
-                {% endif %}
-                <button class="btn" onclick="moveTo('ReplyToClaimContainer')">Reply To Claim</button>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Original Claim -->
-        <!-- Make a mark to show easily who the OP is [CHANGE_NEEDED] -->
-        <div id="{{ claim.ClaimId }}" class="grid-container">
-            <div class="userInfo">
-                <p><b>{{ claim.Username }}</b></p>
-                <img class="userProfile" src="{{ url_for('static', filename='Resources/Images/default_user.png') }}">
-                {% if claim.IsAdmin == True %}
-                <br><br>
-                <span class="adminLabel"><b>Admin</b></span>
-                <br>
-                {% endif %}
-                <p>Join Date: {{ claim.JoinDate }}</p>
-                <p>Posted: {{ claim.ClaimPostDate }}</p>
-                <p>Total Posts: {{ claim.TotalPosts }}</p>
-            </div>
-            <div style="border-radius: 15px; width: auto;" class="claimTextContainer">
-                <p class="claimText">{{ claim.ClaimText }}</p>
-            </div>
-        </div>
-
-        <!-- Make a statistics bar [CHANGE_NEEDED] -->
-        <div style="text-align: center;">
-            <h2 class="statisticsTitle">Claim Statistics</h2>
-            <div style="text-align: center;">
-                <span class="statisticsText">Total Replies: <b>{{ replies|length }}</b></span>
-                <br>
-                <br>
-                <span class="statisticsText">Last Updated: <b>{{ claim.LastUpdateTime }}</b></span>
-            </div>
-        </div>
-
-        <!-- Replies -->
-        {% for reply in replies %}
-        <div id="reply_{{ reply.Id }}" style="margin-left: 30px; margin-top: 30px;" class="grid-container">
-            <div class="userInfo">
-                <p><b>{{ reply.Username }}</b></p>
-                <img class="userProfile" src="{{ url_for('static', filename='Resources/Images/default_user.png') }}">
-                {% if reply.IsAdmin == True %}
-                <br><br>
-                <span class="adminLabel"><b>Admin</b></span>
-                <br>
-                {% endif %}
-                <p>Join Date:{{ reply.JoinDate }}</p>
-                <p>Posted: {{ reply.ReplyPostDate }}</p>
-                <p>Total Posts: {{ reply.TotalPosts }}</p>
-            </div>
-            <div style="border-radius: 15px; width: auto;" class="claimTextContainer">
-                <div style="margin-bottom: 10px;" class="flex-container-space-between">
-                    <div>
-                        {% if reply.isReplyToReply == True %}
-                        <span class="replyingTo">Replying To: <a onclick="moveTo('reply_{{ reply.ReplyingToId }}')">{{
-                                reply.ReplyingToUsername }}</a></span>
-                        {% else %}
-                        <span class="replyingTo">Replying To: <a onclick="moveTo('{{ claim.ClaimId }}')">{{
-                                claim.Username }}</a></span>
-                        {% endif %}
-                        {% if reply.ReplyType == "Clarification" %}
-                        <span style="background-color: var(--replyTypeClarification);" class="replyTypeLabel">{{
-                            reply.ReplyType }}</span>
-                        {% elif reply.ReplyType == "Supporting Argument" %}
-                        <span style="background-color: var(--replyTypeSupportingArgument);" class="replyTypeLabel">{{
-                            reply.ReplyType }}</span>
-                        {% elif reply.ReplyType == "Counterargument" %}
-                        <span style="background-color: var(--replyTypeCounterargument); color: var(--text2);"
-                            class="replyTypeLabel">{{
-                            reply.ReplyType }}</span>
-                        {% elif reply.ReplyType == "Evidence" %}
-                        <span style="background-color: var(--replyTypeEvidence);" class="replyTypeLabel">{{
-                            reply.ReplyType }}</span>
-                        {% elif reply.ReplyType == "Support" %}
-                        <span style="background-color: var(--replyTypeSupport); color: var(--text2);"
-                            class="replyTypeLabel">{{
-                            reply.ReplyType }}</span>
-                        {% elif reply.ReplyType == "Rebuttal" %}
-                        <span style="background-color: var(--replyTypeRebuttal);" class="replyTypeLabel">{{
-                            reply.ReplyType }}</span>
-                        {% endif %}
-                    </div>
-                    <div>
-                        {% if user.LoggedIn == True %}
-                        {% if user.Admin == True %}
-                        <form action="/delete/topic/{{ topic.TopicId }}/claim/{{ claim.ClaimId }}/reply/{{ reply.Id }}"
-                            method="POST" style="display: inline-block;">
-                            <button id="deleteClaim" class="btn"><i class="fa fa-trash fa-lg"
-                                    aria-hidden="true"></i></button>
-                        </form>
-                        {% if reply.isReplyToReply == False %}
-                        <button onclick="overlayOn('overlayMoveReply')" id="moveReply" class="btn"><i
-                                class="fa fa-arrows fa-lg" aria-hidden="true"></i></button>
-                        <div id="overlayMoveReply" class="overlay">
-                            <form action="/move/topic/{{ topic.TopicId }}/reply/{{ reply.Id }}" method="POST"
-                                onreset="overlayOff('overlayMoveReply')">
-                                <button type="reset" class="exitOverlayButton"
-                                    style="background-color: var(--primary); color: var(--icon2);"><i
-                                        class="fa fa-times fa-2x" aria-hidden="true"></i></button>
-                                <div class="centerDiv moveClaimContainer">
-                                    <label style="font-size: 20px; margin: 5px;" for="newClaimId">Move Reply
-                                        To:</label><br>
-                                    <select name="newClaimId" id="newClaimId" style="padding: 10px; margin: 10px;"
-                                        required>
-                                        <option value="" disabled hidden selected="selected">None</option>
-                                        {% for cl in claimList %}
-                                        {% if cl.Id|int() != claim.ClaimId|int() %}
-                                        <option value="{{ cl.Id }}">{{ cl.Text }} [By {{ cl.Creator }}]</option>
-                                        {% endif %}
-                                        {% endfor %}
-                                    </select>
-                                    <button type="submit" class="formBtn">Confirm</button>
+                    <button title="Move Claim" onclick="overlayOn('overlayTopicList')" id="moveClaim" class="btn"><i
+                            class="fa fa-arrows fa-lg" aria-hidden="true"></i></button>
+                    <div id="overlayTopicList" class="overlay">
+                        <form action="/move/claim/{{ claim.ClaimId }}" method="POST"
+                            onreset="overlayOff('overlayTopicList')">
+                            <div class="centerDiv moveClaimContainer">
+                                <div class="flex-container-space-between">
+                                    <h1 style="font-size: 20px; margin: 5px;" for="newTopicId">Move Claim</h1>
+                                    <button type="reset" class="exitOverlayButton"><i class="fa fa-times fa-2x"
+                                            aria-hidden="true"></i></button>
                                 </div>
-                            </form>
-                        </div>
-                        {% endif %}
-                        {% endif %}
-                        <button class="btn" onclick="showReplyForm('replyTo_{{ reply.Id }}')">Reply</button>
-                        {% endif %}
+                                <hr>
+                                <select name="newTopicId" id="newTopicId" style="padding: 10px; margin: 10px;" required>
+                                    <option value="" disabled hidden selected="selected">None</option>
+                                    {% for t in topicList %}
+                                    {% if t.Id|int() != topic.TopicId|int() %}
+                                    <option value="{{ t.Id }}">{{ t.Name }} [By {{ t.Creator }}]</option>
+                                    {% endif %}
+                                    {% endfor %}
+                                </select>
+                                <hr>
+                                <button type="submit" class="formBtn">Confirm</button>
+                            </div>
+                        </form>
                     </div>
+                    {% endif %}
+                    <button class="btn" onclick="moveTo('ReplyToClaimContainer')">Reply To Claim</button>
+                    {% endif %}
                 </div>
-                {% if reply.isReplyToReply == True %}
-                <div class="quoteReply">{{ reply.ReplyingToText }}</div>
-                {% endif %}
-                {% if reply.Text|string() == "[REMOVED]" %}
-                <p class="claimText" style="text-align: center;"><b>{{ reply.Text }}</b></p>
-                {% else %}
-                <p class="claimText">{{ reply.Text }}</p>
-                {% endif %}
             </div>
-        </div>
-        <!-- Submit a Reply To a Reply Form -->
-        <div id="replyTo_{{ reply.Id }}" class="replyToReplyContainer">
-            <form action="/{{ topic.TopicId }}/{{ claim.ClaimId }}/new/reply/{{ reply.Id }}" method="POST">
-                <div id="inputFields">
-                    <textarea style="margin-top: 5px;" rows="10"
-                        placeholder="You're replying to {{ reply.Username }}..." name="replyToReplyText"
-                        id="replyToReplyText" required></textarea>
+
+            <!-- Original Claim -->
+            <!-- Make a mark to show easily who the OP is [CHANGE_NEEDED] -->
+            <div id="{{ claim.ClaimId }}" class="grid-container">
+                <div class="userInfo">
+                    <p><b>{{ claim.Username }}</b></p>
+                    <img class="userProfile"
+                        src="{{ url_for('static', filename='Resources/Images/default_user.png') }}">
+                    {% if claim.IsAdmin == True %}
+                    <br><br>
+                    <span class="adminLabel"><b>Admin</b></span>
+                    <br>
+                    {% endif %}
+                    <p>Join Date: {{ claim.JoinDate }}</p>
+                    <p>Posted: {{ claim.ClaimPostDate }}</p>
+                    <p>Total Posts: {{ claim.TotalPosts }}</p>
                 </div>
-                <div style="margin: 10px 25px 10px 25px;" class="flex-container-space-between">
-                    <select style="padding: 5px;" name="replyToReplyType" id="replyToReplyType" required>
-                        <option value="" disabled hidden selected="selected">Reply Type</option>
-                        <option value="1">Evidence</option>
-                        <option value="2">Support</option>
-                        <option value="3">Rebuttal</option>
-                    </select>
-                    <div>
-                        <button style="width: auto; padding: 15px; background-color: transparent; border: none;"
-                            type="reset" class="formBtnCancel" id="cancel"
-                            onclick="hideReplyForm('replyTo_{{ reply.Id }}')">Cancel</button>
-                        <button style="width: auto; padding: 15px;" type="submit" class="formBtn" id="continue">Submit
+                <div style="border-radius: 15px; width: auto;" class="claimTextContainer">
+                    <p class="claimText">{{ claim.ClaimText }}</p>
+                </div>
+            </div>
+
+            <!-- Make a statistics bar [CHANGE_NEEDED] -->
+            <div style="text-align: center;">
+                <h2 class="statisticsTitle">Claim Statistics</h2>
+                <div style="text-align: center;">
+                    <span class="statisticsText">Total Replies: <b>{{ replies|length }}</b></span>
+                    <br>
+                    <br>
+                    <span class="statisticsText">Last Updated: <b>{{ claim.LastUpdateTime }}</b></span>
+                </div>
+            </div>
+
+            <!-- Replies -->
+            {% for reply in replies %}
+            <div id="reply_{{ reply.Id }}" style="margin-left: 30px; margin-top: 30px;" class="grid-container">
+                <div class="userInfo">
+                    <p><b>{{ reply.Username }}</b></p>
+                    <img class="userProfile"
+                        src="{{ url_for('static', filename='Resources/Images/default_user.png') }}">
+                    {% if reply.IsAdmin == True %}
+                    <br><br>
+                    <span class="adminLabel"><b>Admin</b></span>
+                    <br>
+                    {% endif %}
+                    <p>Join Date:{{ reply.JoinDate }}</p>
+                    <p>Posted: {{ reply.ReplyPostDate }}</p>
+                    <p>Total Posts: {{ reply.TotalPosts }}</p>
+                </div>
+                <div style="border-radius: 15px; width: auto;" class="claimTextContainer">
+                    <div style="margin-bottom: 10px;" class="flex-container-space-between">
+                        <div>
+                            {% if reply.isReplyToReply == True %}
+                            <span class="replyingTo">Replying To: <a
+                                    onclick="moveTo('reply_{{ reply.ReplyingToId }}')">{{
+                                    reply.ReplyingToUsername }}</a></span>
+                            {% else %}
+                            <span class="replyingTo">Replying To: <a onclick="moveTo('{{ claim.ClaimId }}')">{{
+                                    claim.Username }}</a></span>
+                            {% endif %}
+                            {% if reply.ReplyType == "Clarification" %}
+                            <span style="background-color: var(--replyTypeClarification);" class="replyTypeLabel">{{
+                                reply.ReplyType }}</span>
+                            {% elif reply.ReplyType == "Supporting Argument" %}
+                            <span style="background-color: var(--replyTypeSupportingArgument);"
+                                class="replyTypeLabel">{{
+                                reply.ReplyType }}</span>
+                            {% elif reply.ReplyType == "Counterargument" %}
+                            <span style="background-color: var(--replyTypeCounterargument); color: var(--text2);"
+                                class="replyTypeLabel">{{
+                                reply.ReplyType }}</span>
+                            {% elif reply.ReplyType == "Evidence" %}
+                            <span style="background-color: var(--replyTypeEvidence);" class="replyTypeLabel">{{
+                                reply.ReplyType }}</span>
+                            {% elif reply.ReplyType == "Support" %}
+                            <span style="background-color: var(--replyTypeSupport); color: var(--text2);"
+                                class="replyTypeLabel">{{
+                                reply.ReplyType }}</span>
+                            {% elif reply.ReplyType == "Rebuttal" %}
+                            <span style="background-color: var(--replyTypeRebuttal);" class="replyTypeLabel">{{
+                                reply.ReplyType }}</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            {% if user.LoggedIn == True %}
+                            {% if user.Admin == True %}
+                            <form
+                                action="/delete/topic/{{ topic.TopicId }}/claim/{{ claim.ClaimId }}/reply/{{ reply.Id }}"
+                                method="POST" style="display: inline-block;">
+                                <button title="Delete Reply" id="deleteReply" class="btn"><i class="fa fa-trash fa-lg"
+                                        aria-hidden="true"></i></button>
+                            </form>
+                            {% if reply.isReplyToReply == False %}
+                            <button title="Move Reply" onclick="overlayOn('overlayMoveReply')" id="moveReply"
+                                class="btn"><i class="fa fa-arrows fa-lg" aria-hidden="true"></i></button>
+                            <div id="overlayMoveReply" class="overlay">
+                                <form action="/move/topic/{{ topic.TopicId }}/reply/{{ reply.Id }}" method="POST"
+                                    onreset="overlayOff('overlayMoveReply')">
+                                    <div class="centerDiv moveClaimContainer">
+                                        <div class="flex-container-space-between">
+                                            <h1 style="font-size: 20px; margin: 5px;" for="newClaimId">Move Reply</h1>
+                                            <button type="reset" class="exitOverlayButton"><i class="fa fa-times fa-2x"
+                                                    aria-hidden="true"></i></button>
+                                        </div>
+                                        <hr>
+                                        <select name="newClaimId" id="newClaimId" style="padding: 10px; margin: 10px;"
+                                            required>
+                                            <option value="" disabled hidden selected="selected">None</option>
+                                            {% for cl in claimList %}
+                                            {% if cl.Id|int() != claim.ClaimId|int() %}
+                                            <option value="{{ cl.Id }}">{{ cl.Text }} [By {{ cl.Creator }}]</option>
+                                            {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                        <hr>
+                                        <button type="submit" class="formBtn">Confirm</button>
+                                    </div>
+                                </form>
+                            </div>
+                            {% endif %}
+                            {% endif %}
+                            <button class="btn" onclick="showReplyForm('replyTo_{{ reply.Id }}')">Reply</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if reply.isReplyToReply == True %}
+                    <div class="quoteReply">{{ reply.ReplyingToText }}</div>
+                    {% endif %}
+                    {% if reply.Text|string() == "[REMOVED]" %}
+                    <p class="claimText" style="text-align: center;"><b>{{ reply.Text }}</b></p>
+                    {% else %}
+                    <p class="claimText">{{ reply.Text }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            <!-- Submit a Reply To a Reply Form -->
+            <div id="replyTo_{{ reply.Id }}" class="replyToReplyContainer">
+                <form action="/{{ topic.TopicId }}/{{ claim.ClaimId }}/new/reply/{{ reply.Id }}" method="POST">
+                    <div id="inputFields">
+                        <textarea style="margin-top: 5px;" rows="10"
+                            placeholder="You're replying to {{ reply.Username }}..." name="replyToReplyText"
+                            id="replyToReplyText" required></textarea>
+                    </div>
+                    <div style="margin: 10px 25px 10px 25px;" class="flex-container-space-between">
+                        <select style="padding: 5px;" name="replyToReplyType" id="replyToReplyType" required>
+                            <option value="" disabled hidden selected="selected">Reply Type</option>
+                            <option value="1">Evidence</option>
+                            <option value="2">Support</option>
+                            <option value="3">Rebuttal</option>
+                        </select>
+                        <div>
+                            <button style="width: auto; padding: 15px; background-color: transparent; border: none;"
+                                type="reset" class="formBtnCancel" id="cancel"
+                                onclick="hideReplyForm('replyTo_{{ reply.Id }}')">Cancel</button>
+                            <button style="width: auto; padding: 15px;" type="submit" class="formBtn"
+                                id="continue">Submit
+                                Reply</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            {% endfor %}
+
+            <!-- Reply To Claim Form -->
+            {% if user.LoggedIn == True %}
+            <hr style="margin: 30px;">
+            <div style="padding: 5px;" id="ReplyToClaimContainer">
+                <div id="forumHierarchy"><b>Your Reply</b></div>
+                <form action="/{{ topic.TopicId }}/{{ claim.ClaimId }}/new/reply" method="POST">
+                    <div id="inputFields">
+                        <textarea rows="10" placeholder="Your reply (minimum 15 characters)..." minlength="15"
+                            name="replyToClaimText" id="replyToClaimText" required></textarea>
+                    </div>
+                    <div style="margin: 10px 30px 10px 30px;" class="flex-container-space-between">
+                        <select style="padding: 5px;" name="replyToClaimType" id="replyToClaimType" required>
+                            <option value="" disabled hidden selected="selected">Reply Type</option>
+                            <option value="1">Clarification</option>
+                            <option value="2">Supporting Argument</option>
+                            <option value="3">Counterargument</option>
+                        </select>
+                        <button style="width: auto; padding: 15px;" type="submit" class="formBtn" id="formBtn">Submit
                             Reply</button>
                     </div>
-                </div>
-            </form>
+                </form>
+            </div>
+            {% endif %}
         </div>
-        {% endfor %}
-
-        <!-- Reply To Claim Form -->
-        {% if user.LoggedIn == True %}
-        <hr style="margin: 30px;">
-        <div style="padding: 5px;" id="ReplyToClaimContainer">
-            <div id="forumHierarchy"><b>Your Reply</b></div>
-            <form action="/{{ topic.TopicId }}/{{ claim.ClaimId }}/new/reply" method="POST">
-                <div id="inputFields">
-                    <textarea rows="10" placeholder="Your reply (minimum 15 characters)..." minlength="15"
-                        name="replyToClaimText" id="replyToClaimText" required></textarea>
-                </div>
-                <div style="margin: 10px 30px 10px 30px;" class="flex-container-space-between">
-                    <select style="padding: 5px;" name="replyToClaimType" id="replyToClaimType" required>
-                        <option value="" disabled hidden selected="selected">Reply Type</option>
-                        <option value="1">Clarification</option>
-                        <option value="2">Supporting Argument</option>
-                        <option value="3">Counterargument</option>
-                    </select>
-                    <button style="width: auto; padding: 15px;" type="submit" class="formBtn" id="formBtn">Submit
-                        Reply</button>
-                </div>
-            </form>
-        </div>
-        {% endif %}
-
     </div>
 </body>
 
@@ -310,6 +324,9 @@
     .moveClaimContainer {
         background-color: var(--background2);
         padding: 20px;
+        min-width: 25%;
+        width: auto;
+        height: auto;
         text-align: center;
         border: 3px solid var(--border);
     }

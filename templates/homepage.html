@@ -38,105 +38,135 @@
         {% endif %}
     </div>
 
-    <!-- Register & Login Forms -->
-    <div id="registerContainer"></div>
-    <div id="loginContainer"></div>
-    <div id="messageBoxContainer"></div>
+    <div id="mainContainer">
+        <!-- Register & Login Forms -->
+        <div id="registerContainer"></div>
+        <div id="loginContainer"></div>
+        <div id="messageBoxContainer"></div>
 
-    <div style="display: none;" id="ConfirmationPrompt" class="centerDiv confirmationPrompt">
-        <h2>Are you sure?</h2>
-        <div style="text-align: center;">
-            <button class="transBtn">No</button>
-            <button class="transBtn">Yes</button>
-        </div>
-    </div>
-
-
-
-    <!-- Create Topic -->
-    <div id="overlayTopic" class="overlay">
-        <form id="createTopic" onsubmit="createTopic(event)" onreset="overlayOff('overlayTopic')">
-            <div class="createTopicContainer centerDiv">
-                <h1 style="display: inline-block;">Create Topic</h1>
-                <button type="reset" class="exitOverlayButton"><i class="fa fa-times fa-2x"
-                        aria-hidden="true"></i></button>
-                <div id="inputFields">
-                    <hr class="hrForm">
-                    <input type="text" placeholder="Topic Name" name="topicName" id="topicName" required>
-                    <hr class="hrForm">
-                </div>
-                <button type="submit" class="formBtn" id="formBtn">Create</button>
+        <div style="display: none;" id="ConfirmationPrompt" class="centerDiv confirmationPrompt">
+            <h2>Are you sure?</h2>
+            <div style="text-align: center;">
+                <button class="transBtn">No</button>
+                <button class="transBtn">Yes</button>
             </div>
-        </form>
-    </div>
-
-    <!-- Logo -->
-    <div class="logoContainer">
-        <h1 style="vertical-align: middle;" class="logoTitle"><img style="vertical-align: middle;" width="300px"
-                height="300px" src="{{ url_for('static', filename='Resources/Images/logo.png') }}" />FORUMS</h1>
-    </div>
-
-    <!-- Topics Section -->
-    <div class="forumsContainer">
-        <div class="flex-container-space-between">
-            <div>
-                <label class="searchLabel"><i class="fa fa-search" aria-hidden="true"></i></label>
-                <input class="searchField" type="search" placeholder="Search..." id="search" />
-            </div>
-            {% if user.LoggedIn == True %}
-            <button class="btn" onclick="overlayOn('overlayTopic')">New Topic</button>
-            {% endif %}
         </div>
-        <div class="topicContainerTitle grid-container-topics">
-            <span style="color: white; margin-left: 70px;"><b>Topic</b></span>
-            <span style="color: white;" class="grid-content-center"><b>Latest Claim</b></span>
-            <span style="color: white;" class="grid-content-center"><b>Topic Creator</b></span>
-            <span style="color: white;" class="grid-content-center"><b>Claims</b></span>
-        </div>
-        {% for topic in topics %}
-        <div>
-            <hr>
-            <div class="grid-container-topics">
-                <div onclick="location.href='/{{ topic.Id }}'" style="margin-left: 20px;"
-                    class="topicContainer grid-content-middle">
-                    <span class="topic"><i class="fa fa-book fa-4x topicIcon" aria-hidden="true"></i>{{ topic.Name
-                        }}</span>
+
+        <!-- Advanced Search Info -->
+        <div id="overlayAdvancedSearch" class="overlay">
+            <div class="advancedSearch centerDiv">
+                <div class="flex-container-space-between">
+                    <h1 style="display: inline-block;">Advanced Search</h1>
+                    <button onclick="overlayOff('overlayAdvancedSearch')" class="exitOverlayButton"><i
+                            class="fa fa-times fa-2x" aria-hidden="true"></i></button>
                 </div>
-                <div style="font-size: 15px;" class="topic grid-content-center">
-                    {% if topic.Claim.HasClaim == True %}
-                    <div onclick="location.href='/{{ topic.Id }}/{{ topic.Claim.Id }}'"
-                        style="display: grid; grid-template-columns: 20% 80%; justify-items: center; align-items: center; text-align: center;"
-                        class="topicContainer">
-                        <i style="margin-right: 10px; color: var(--primary);" class="fa fa-comments fa-3x"
-                            aria-hidden="true"></i>
-                        <div>
-                            <span>Claim By: <b>{{ topic.Claim.Username }}</b></span>
-                            <br>
-                            <span>Last Reply: <b>{{ topic.Claim.UpdatedAt }}</b></span>
-                        </div>
+                <div>
+                    <hr>
+                    <p>You can apply filters in your search:</p>
+                    <p><i>@topic [Search for...]</i></p>
+                    <p><i>@claim [Search for...]</i></p>
+                    <br>
+                    <p>Example: <i>"@claim computers"</i></p>
+                    <p>The above example will find matching claims about <b>computers</b></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create Topic -->
+        <div id="overlayTopic" class="overlay">
+            <form id="createTopic" onsubmit="createTopic(event)" onreset="overlayOff('overlayTopic')">
+                <div class="createTopicContainer centerDiv">
+                    <div class="flex-container-space-between">
+                        <h1 style="display: inline-block;">Create Topic</h1>
+                        <button type="reset" class="exitOverlayButton"><i class="fa fa-times fa-2x"
+                                aria-hidden="true"></i></button>
                     </div>
-                    {% else %}
-                    <span>No Claims</span>
-                    {% endif %}
+                    <div id="inputFields">
+                        <hr class="hrForm">
+                        <input type="text" placeholder="Topic Name" name="topicName" id="topicName" required>
+                        <hr class="hrForm">
+                    </div>
+                    <button type="submit" class="formBtn" id="formBtn">Create</button>
                 </div>
-                <div class="grid-content-center">
-                    <span>By <b>{{ topic.Creator }}</b></span>
+            </form>
+        </div>
+
+        <!-- Logo -->
+        <div class="logoContainer">
+            <h1 style="vertical-align: middle;" class="logoTitle"><img style="vertical-align: middle;" width="300px"
+                    height="300px" src="{{ url_for('static', filename='Resources/Images/logo.png') }}" />FORUMS</h1>
+        </div>
+
+        <!-- Topics Section -->
+        <div class="forumsContainer" style="margin-top: 0;">
+            <div class="flex-container-space-between">
+                <div>
+                    <label class="searchLabel"><i class="fa fa-search fa-lg" aria-hidden="true"></i></label>
+                    <input oninput="search()" class="searchField" name="searchQuery" type="search"
+                        placeholder="Search..." id="search" />
+                    <i onclick="overlayOn('overlayAdvancedSearch')" class="fa fa-info-circle fa-lg" aria-hidden="true"
+                        style="cursor: pointer;"></i>
+                    <div style="position: absolute; z-index: 1; min-width: 25%;" id="results"></div>
                 </div>
-                <div class="grid-content-center">
-                    <span>{{ topic.Claims }}</span>
-                </div>
-                {% if user.Admin == True %}
-                <div class="grid-content-center">
-                    <form action="/delete/topic/{{ topic.Id }}" method="POST">
-                        <button type="submit" class="transBtn"><i style="color: var(--remove);"
-                                class="fa fa-trash fa-lg" aria-hidden="true"></i></button>
-                    </form>
-                </div>
+                {% if user.LoggedIn == True %}
+                <button class="btn" onclick="overlayOn('overlayTopic')">New Topic</button>
                 {% endif %}
             </div>
-            <hr>
+            <div class="topicContainerTitle grid-container-topics">
+                <span style="color: white; margin-left: 70px;"><b>Topic</b></span>
+                <span style="color: white;" class="grid-content-center"><b>Latest Claim</b></span>
+                <span style="color: white;" class="grid-content-center"><b>Topic Creator</b></span>
+                <span style="color: white;" class="grid-content-center"><b>Claims</b></span>
+            </div>
+            {% for topic in topics %}
+            <div>
+                <hr>
+                <div class="grid-container-topics">
+                    <div title="View Topic" onclick="location.href='/{{ topic.Id }}'" style="margin-left: 20px;"
+                        class="topicContainer">
+                        <span class="topic"><i class="fa fa-book fa-4x topicIcon" aria-hidden="true"></i>{{ topic.Name
+                            }}</span>
+                    </div>
+                    <div style="font-size: 15px;" class="topic grid-content-center">
+                        {% if topic.Claim.HasClaim == True %}
+                        <div title="View Claim" onclick="location.href='/{{ topic.Id }}/{{ topic.Claim.Id }}'"
+                            style="display: grid; grid-template-columns: 20% 80%; justify-items: center; align-items: center; text-align: center;"
+                            class="topicContainer">
+                            <i style="margin-right: 10px; color: var(--primary);" class="fa fa-comment fa-3x"
+                                aria-hidden="true"></i>
+                            <div>
+                                <span>Claim By: <b>{{ topic.Claim.Username }}</b></span>
+                                <br>
+                                <span>Last Reply: <b>{{ topic.Claim.UpdatedAt }}</b></span>
+                            </div>
+                        </div>
+                        {% else %}
+                        <span>No Claims</span>
+                        {% endif %}
+                    </div>
+                    <div class="grid-content-center">
+                        <div style="text-align: center;">
+                            <span>By <b>{{ topic.Creator }}</b></span>
+                            <br>
+                            <span>Created At: <b>{{ topic.CreatedAt }}</b></span>
+                        </div>
+                    </div>
+                    <div class="grid-content-center">
+                        <span>{{ topic.Claims }}</span>
+                    </div>
+                    {% if user.Admin == True %}
+                    <div class="grid-content-center">
+                        <form action="/delete/topic/{{ topic.Id }}" method="POST">
+                            <button title="Delete Topic" type="submit" class="transBtn"><i style="color: var(--remove);"
+                                    class="fa fa-trash fa-lg" aria-hidden="true"></i></button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+                <hr>
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
 </body>
 

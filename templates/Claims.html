@@ -38,86 +38,111 @@
         {% endif %}
     </div>
 
-    <!-- Register & Login Forms -->
-    <div id="registerContainer"></div>
-    <div id="loginContainer"></div>
+    <div id="mainContainer">
+        <!-- Register & Login Forms -->
+        <div id="registerContainer"></div>
+        <div id="loginContainer"></div>
+        <div id="messageBoxContainer"></div>
 
-    <!-- Claim Relations -->
-    <div id="overlayRelatedClaims" class="overlay">
-        <button onclick="overlayOff('overlayRelatedClaims')" class="exitOverlayButton"
-            style="background-color: var(--primary); color: var(--icon2);"><i class="fa fa-times fa-2x"
-                aria-hidden="true"></i></button>
-        <div class="centerDiv relatedClaimsContainer">
-            {% for rClaim in relatedClaimList %}
+        <!-- Claim Relations -->
+        <div id="overlayRelatedClaims" class="overlay">
+            <div id="overlayRelatedClaims-container" class="centerDiv relatedClaimsContainer">
+                <div class="flex-container-space-between">
+                    <h1>Related Claims</h1>
+                    <button onclick="overlayOff('overlayRelatedClaims'); clearRelations();" class="exitOverlayButton"><i
+                            class="fa fa-times fa-2x" aria-hidden="true"></i></button>
+                </div>
+                <div class="claimRelationsContainer grid-container-relations">
+                    <span style="color: white;" class="grid-content-center"><b>Opposed</b></span>
+                    <span></span>
+                    <span style="color: white;" class="grid-content-center"><b>Equivalent</b></span>
+                </div>
+                <div style="text-align: left;" class="grid-container-relations">
+                    <div id="overlayRelatedClaims-opposed"></div>
+                    <div style="display: flex;">
+                        <hr>
+                    </div>
+                    <div id="overlayRelatedClaims-equivalent"></div>
+                </div>
+            </div>
+        </div>
 
+        <div class="forumsContainer">
+            <div id="forumHierarchy" class="flex-container-space-between">
+                <div>
+                    <button id="homeBtn" onclick="location.href='/'" class="forumHierarchyButton">
+                        <i class="fa fa-home fa-2x" aria-hidden="true"></i>
+                    </button>
+                    <i class="fa fa-long-arrow-right" aria-hidden="true"></i>
+                    <span>{{ topicName }}</span>
+                </div>
+                <div>
+                    {% if user.LoggedIn == True %}
+                    <button class="btn" onclick="location.href='/{{ topicId }}/new/claim'">New Claim</button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Claims -->
+            <div class="topicContainerTitle grid-container-claims">
+                <span style="color: white; margin-left: 70px;"><b>Claim</b></span>
+                <span style="color: white;" class="grid-content-center"><b>Related Claims</b></span>
+                <span style="color: white;" class="grid-content-center"><b>Updated At</b></span>
+                <span style="color: white;" class="grid-content-center"><b>Poster</b></span>
+            </div>
+
+            {% for claim in claims %}
+            <div>
+                <hr>
+                <div class="grid-container-claims">
+                    <div title="View Claim" onclick="location.href='/{{ topicId }}/{{ claim.Id }}'"
+                        class="claimContainer">
+                        <span class="claimText"><i class="fa fa-comment fa-2x claimIcon" aria-hidden="true"></i>{{
+                            claim.Text }}</span>
+                    </div>
+                    <div class="grid-content-center">
+                        <button id="relatedClaimsBtn" title="View Related Claims"
+                            onclick="overlayOn('overlayRelatedClaims'); loadRelatedClaims('{{ claim.Id }}','{{ topicId }}')"
+                            style="color: var(--primary);" class="transBtn"><i class="fa fa-comments fa-2x"
+                                aria-hidden="true"></i></button>
+                    </div>
+                    <div class="grid-content-center">
+                        <span>{{ claim.UpdatedAt }}</span>
+                    </div>
+                    <div class="grid-content-center">
+                        <span>By <b>{{ claim.Username }}</b></span>
+                    </div>
+                    {% if user.Admin == True %}
+                    <div class="grid-content-center">
+                        <form action="/delete/topic/{{ topicId }}/claim/{{ claim.Id }}" method="POST">
+                            <button title="Delete Claim" type="submit" class="transBtn"><i style="color: var(--remove);"
+                                    class="fa fa-trash fa-lg" aria-hidden="true"></i></button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+                <hr>
+            </div>
             {% endfor %}
         </div>
-    </div>
-
-    <div class="forumsContainer">
-        <div id="forumHierarchy" class="flex-container-space-between">
-            <div>
-                <button id="homeBtn" onclick="location.href='/'" class="forumHierarchyButton">
-                    <i class="fa fa-home fa-2x" aria-hidden="true"></i>
-                </button>
-                <i class="fa fa-long-arrow-right" aria-hidden="true"></i>
-                <span>{{ topicName }}</span>
-            </div>
-            <div>
-                {% if user.LoggedIn == True %}
-                <button class="btn" onclick="location.href='/{{ topicId }}/new/claim'">New Claim</button>
-                {% endif %}
-            </div>
-        </div>
-
-        <div class="topicContainerTitle grid-container-claims">
-            <span style="color: white; margin-left: 70px;"><b>Claim</b></span>
-            <span style="color: white;"><b>Related Claims</b></span>
-            <span style="color: white;" class="grid-content-center"><b>Updated At</b></span>
-            <span style="color: white;" class="grid-content-center"><b>Poster</b></span>
-        </div>
-
-        {% for claim in claims %}
-        <div>
-            <hr>
-            <div class="grid-container-claims">
-                <div onclick="location.href='/{{ topicId }}/{{ claim.Id }}'" class="claimContainer">
-                    <span class="claimText"><i class="fa fa-comments fa-2x claimIcon" aria-hidden="true"></i>{{
-                        claim.Text }}</span>
-                </div>
-                <div class="grid-content-center">
-                    <button id="relatedClaimsBtn"
-                        onclick="overlayOn('overlayRelatedClaims'); loadRelatedClaims('{{ claim.Id }}')"
-                        style="color: var(--primary);" class="transBtn"><i class="fa fa-users fa-2x"
-                            aria-hidden="true"></i></button>
-                </div>
-                <div class="grid-content-center">
-                    <span>{{ claim.UpdatedAt }}</span>
-                </div>
-                <div class="grid-content-center">
-                    <span>By <b>{{ claim.Username }}</b></span>
-                </div>
-                {% if user.Admin == True %}
-                <div class="grid-content-center">
-                    <form action="/delete/topic/{{ topicId }}/claim/{{ claim.Id }}" method="POST">
-                        <button type="submit" class="transBtn"><i style="color: var(--remove);"
-                                class="fa fa-trash fa-lg" aria-hidden="true"></i></button>
-                    </form>
-                </div>
-                {% endif %}
-            </div>
-            <hr>
-        </div>
-        {% endfor %}
     </div>
 </body>
 
 <style>
     .relatedClaimsContainer {
         background-color: var(--background2);
-        padding: 20px;
-        text-align: center;
         border: 3px solid var(--border);
+        padding: 20px;
+        width: 75%;
+        text-align: center;
+    }
+
+    .claimRelationsContainer {
+        background-color: var(--third);
+        padding-top: 20px;
+        padding-bottom: 20px;
+        margin-bottom: 10px;
+        font-size: 20px;
     }
 
     .claimContainer {

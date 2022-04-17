@@ -69,50 +69,53 @@
         {% endif %}
     </div>
 
-    <!-- Register & Login Forms -->
-    <div id="registerContainer"></div>
-    <div id="loginContainer"></div>
+    <div id="mainContainer">
+        <!-- Register & Login Forms -->
+        <div id="registerContainer"></div>
+        <div id="loginContainer"></div>
+        <div id="messageBoxContainer"></div>
 
-    <!-- Create Claim -->
-    <div class="forumsContainer">
-        <div id="forumHierarchy"><b>You're posting a new claim at:</b> {{ topicName }}</div>
-        <form action="/{{ topicId }}/{{ user.Id }}/new/claim" method="POST">
-            <div id="inputFields">
-                <hr class="hrForm">
-                <!-- Text -->
-                <textarea rows="15" placeholder="Describe your claim (minimum 15 characters)..." minlength="15"
-                    name="claimText" id="claimText" autofocus required></textarea>
-                <!-- Claim Relation -->
-                <div class="dropdown">
-                    <div onclick="openDropdown()" class="dropdown-container">
-                        <select style="padding: 10px;">
-                            <option>Select claim(s) to relate to (Optional)</option>
-                        </select>
-                        <div class="overSelect"></div>
+        <!-- Create Claim -->
+        <div class="forumsContainer">
+            <div id="forumHierarchy"><b>You're posting a new claim at:</b> {{ topicName }}</div>
+            <form action="/{{ topicId }}/{{ user.Id }}/new/claim" method="POST">
+                <div id="inputFields">
+                    <hr class="hrForm">
+                    <!-- Text -->
+                    <textarea rows="15" placeholder="Describe your claim (minimum 15 characters)..." minlength="15"
+                        name="claimText" id="claimText" autofocus required></textarea>
+                    <!-- Claim Relation -->
+                    <div class="dropdown">
+                        <div onclick="openDropdown()" class="dropdown-container">
+                            <select style="padding: 10px;">
+                                <option>Select claim(s) to relate to (Optional)</option>
+                            </select>
+                            <div class="overSelect"></div>
+                        </div>
+                        <div id="options">
+                            {% for claim in claims %}
+                            <label onclick="enableTypes('{{ claims|length }}')">
+                                <input type="checkbox" id="claimToClaimRelation_{{ loop.index }}"
+                                    name="claimToClaimRelation" value="{{ claim.Id }}" />
+                                <i style="margin: 0 5px 0 5px; color: var(--primary);" class="fa fa-comment fa-lg"
+                                    aria-hidden="true"></i>
+                                <span>{{ claim.Text }} [By {{ claim.Username }}]</span>
+                            </label>
+                            {% endfor %}
+                        </div>
                     </div>
-                    <div id="options">
-                        {% for claim in claims %}
-                        <label onclick="enableTypes('{{ claims|length }}')">
-                            <input type="checkbox" id="claimToClaimRelation_{{ loop.index }}"
-                                name="claimToClaimRelation" value="{{ claim.Id }}" />
-                            <i style="margin: 0 5px 0 5px; color: var(--primary);" class="fa fa-comments fa-lg"
-                                aria-hidden="true"></i>
-                            <span>{{ claim.Text }} [By {{ claim.Username }}]</span>
-                        </label>
-                        {% endfor %}
-                    </div>
+                    <!-- Relationship Type -->
+                    <select disabled name="claimToClaimRelationType" id="claimToClaimRelationType" class="relateClaim"
+                        required>
+                        <option value="" disabled hidden selected="selected">Type of Relationship (Required)</option>
+                        <option value="1">Opposed</option>
+                        <option value="2">Equivalent</option>
+                    </select>
+                    <hr class="hrForm">
+                    <button type="submit" style="width: 40%;" class="formBtn" id="formBtn">Create Claim</button>
                 </div>
-                <!-- Relationship Type -->
-                <select disabled name="claimToClaimRelationType" id="claimToClaimRelationType" class="relateClaim"
-                    required>
-                    <option value="" disabled hidden selected="selected">Type of Relationship (Required)</option>
-                    <option value="1">Opposed</option>
-                    <option value="2">Equivalent</option>
-                </select>
-                <hr class="hrForm">
-                <button type="submit" style="width: 40%;" class="formBtn" id="formBtn">Create Claim</button>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 </body>
 

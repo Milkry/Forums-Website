@@ -202,7 +202,7 @@ function createTopic(e) {
     request.send();
 }
 
-function loadRelatedClaims(id) {
+function loadRelatedClaims(claimId, topicId) {
     if (mutex) return;
     mutex = true;
 
@@ -212,17 +212,102 @@ function loadRelatedClaims(id) {
     button.style.background = disabledButtonsColor;
     let data =
     {
-        claimId: id,
+        claimId: claimId,
     };
 
     var request = new XMLHttpRequest();
     request.open("GET", "/claims/related/get/" + data.claimId, true);
     request.onload = () => {
         let claims = JSON.parse(request.response).relations;
-        console.log(claims);
+        if (claims.length == 0) {
+            let claim =
+                `
+                <div style="margin 10px">
+                    <p style="word-break: break-all; padding: 20px; font-size: 20px; color: var(--text);">No relations for this claim</p>
+                </div>
+                `;
+            $('#overlayRelatedClaims-opposed').append(claim);
+            $('#overlayRelatedClaims-equivalent').append(claim);
+        }
+        for (const relation of claims) {
+            let claim =
+                `
+                <div onclick="window.open('/${topicId}/${relation.relatedToId}', '_blank')" class="claimContainer" style="margin 10px">
+                    <p style="word-break: break-all; padding: 20px; font-size: 20px; color: var(--text);"><i class="fa fa-comment fa-lg claimIcon" aria-hidden="true"></i>${relation.relatedToText}</p>
+                </div>
+                `;
+            if (relation.relationType == "Opposed") {
+                $('#overlayRelatedClaims-opposed').append(claim);
+            }
+            else {
+                $('#overlayRelatedClaims-equivalent').append(claim);
+            }
+        }
         button.disabled = false;
         button.style.background = originalButtonColor; // Restores the original color
         mutex = false;
     }
     request.send();
+}
+
+function clearRelations() {
+    $('#overlayRelatedClaims-opposed').empty();
+    $('#overlayRelatedClaims-equivalent').empty();
+}
+
+function search() {
+    let data =
+    {
+        searchQuery: $('#search').val(),
+    };
+
+    $('#results').empty();
+    $('#results').css('border', 'none');
+    $('#results').css('background-color', 'transparent');
+
+    if (data.searchQuery == "") return;
+
+    $('#results').css('border', '1px solid black');
+    $('#results').css('background-color', 'var(--background2)');
+
+    var request = new XMLHttpRequest();
+    request.open("POST", "/search", true);
+    request.setRequestHeader("Content-type", "application/json");
+    request.onload = () => {
+        let results = JSON.parse(request.response).results;
+        if (results.length == 0) {
+            let element =
+                `
+                    <div style="padding: 5px;">
+                        <span><i class="fa fa-times fa-lg resultsIcon" aria-hidden="true" style="color: var(--remove);"></i>No Results Found...</span>
+                    </div>
+                `;
+            $('#results').append(element);
+        }
+        if (results.length > 0) {
+            for (const result of results) {
+                if (result.type == "TOPIC") {
+                    let element =
+                        `
+                    <div title="View Topic" onclick="location.href='/${result.topicId}'" style="padding: 5px;"
+                        class="resultsContainer">
+                        <span><i class="fa fa-book fa-lg resultsIcon" aria-hidden="true"></i>${result.topicName}</span>
+                    </div>
+                    `;
+                    $('#results').append(element);
+                }
+                else if (result.type == "CLAIM") {
+                    let element =
+                        `
+                    <div title="View Claim" onclick="location.href='/${result.topicId}/${result.claimId}'" style="padding: 5px;"
+                        class="resultsContainer">
+                        <span><i class="fa fa-comment fa-lg resultsIcon" aria-hidden="true"></i>${result.text}</span>
+                    </div>
+                    `;
+                    $('#results').append(element);
+                }
+            }
+        }
+    }
+    request.send(JSON.stringify(data.searchQuery));
 }

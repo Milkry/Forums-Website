@@ -232,10 +232,11 @@ def deleteReply(topicId, claimId, replyId):
     cursor = db.cursor()
     cursor.execute("PRAGMA foreign_keys = ON")
     db.commit()
-    deletedReplyText = "[REMOVED]"
-    cursor.execute("update replyText set text=? where replyTextID=?",
-                   (deletedReplyText, replyId,))
-    #cursor.execute("delete from replyText where replyTextID=?", (replyId,))
+    # Alternative way of deleting a reply
+    #deletedReplyText = "[REMOVED]"
+    # cursor.execute("update replyText set text=? where replyTextID=?",
+    #               (deletedReplyText, replyId,))
+    cursor.execute("delete from replyText where replyTextID=?", (replyId,))
     db.commit()
     db.close()
     return redirect(url_for("displayClaim", topicId=topicId, claimId=claimId))
@@ -495,16 +496,77 @@ def getRelatedClaims(claimId):
     cursor = db.cursor()
     claimRelations = []
     claims = cursor.execute(
-        "select first, second, claimRelType from claimToClaim inner join claimToClaimType on claimToClaim.claimRelType = claimToClaimType.claimRelTypeID")
+        """SELECT first, second, claimToClaimType.claimRelType
+            FROM claimToClaim
+            INNER JOIN claimToClaimType
+            ON claimToClaim.claimRelType = claimToClaimType.claimRelTypeID
+            WHERE claimToClaim.first=? OR claimToClaim.second=?""", (claimId, claimId,))
+    claimRelatedIds = []
     for row in claims:
-        print(row)
-        '''firstClaim = row[0]
-        secondClaim = row[1]
+        first = row[0]
+        second = row[1]
         type = row[2]
+        if int(first) != int(claimId):
+            class Claim:
+                Id = first
+                Type = type
+            claimRelatedIds.append(Claim)
+        else:
+            class Claim:
+                Id = second
+                Type = type
+            claimRelatedIds.append(Claim)
+
+    for cl in claimRelatedIds:
+        claim = cursor.execute(
+            "SELECT text FROM claim WHERE claimID=?", (cl.Id,))
+        for row in claim:
+            text = str(row[0])[:35] + str("...")
         claimRelations.append(
-            {"claim1": firstClaim, "claim2": secondClaim, "type": type})'''
+            {"relatedToId": cl.Id, "relatedToText": text, "relationType": cl.Type})
     db.close()
     return jsonify({"relations": claimRelations})
+
+
+# Returns a list of search results found
+@app.route('/search', methods=["POST"])
+def searchFor():
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+
+    query = request.json
+    topicSearch = True
+    claimSearch = True
+    fullSearch = True
+    results = []
+    searchQuery = str(query).split(" ")
+
+    if searchQuery[0] == "@topic":
+        claimSearch = False
+        fullSearch = False
+    if searchQuery[0] == "@claim":
+        topicSearch = False
+        fullSearch = False
+
+    if not fullSearch:
+        searchQuery.pop(0)
+
+    for search in searchQuery:
+        if topicSearch:
+            # Search topics
+            result = cursor.execute(
+                "SELECT topicID, topicName FROM topic WHERE topicName LIKE ?", ("%" + search + "%",))
+            for row in result:
+                results.append(
+                    {"type": "TOPIC", "topicId": row[0], "topicName": row[1]})
+        if claimSearch:
+            # Search claims
+            result = cursor.execute(
+                "SELECT claimID, topic, text FROM claim WHERE text LIKE ?", ("%" + search + "%",))
+            for row in result:
+                results.append(
+                    {"type": "CLAIM", "claimId": row[0], "topicId": row[1], "text": str(row[2])[:75] + str("...")})
+    return jsonify({"results": removeDuplicates(results)})
 
 
 ######################### HELPER FUNCTIONS #########################
@@ -526,6 +588,15 @@ def NotFoundMessage(content):
 # Default error 404 page
 def NotFound():
     return render_template("404.html", content="Page")
+
+
+# Returns a list back without duplicated elements
+def removeDuplicates(results):
+    cleanResults = []
+    for item in results:
+        if item not in cleanResults:
+            cleanResults.append(item)
+    return cleanResults
 
 
 # Returns basic variables for the navigation bar
@@ -658,17 +729,19 @@ def getAllTopics():
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
     topics = cursor.execute(
-        "select topicID, topicName, postingUser from topic order by updateTime desc")
+        "select topicID, topicName, postingUser, creationTime from topic order by updateTime desc")
     topicList = []
     for row in topics:
         topicId = row[0]
         topicName = row[1]
         poster = row[2]
+        createdAt = row[3]
 
         class Topic:
             Id = topicId
             Name = topicName
             Creator = getUsername(poster)
+            CreatedAt = convertJulianTime(createdAt, "DATE")
             Claims = getTotalClaimsInTopic(Id)
             Claim = getLatestClaimInTopic(Id)
         topicList.append(Topic)

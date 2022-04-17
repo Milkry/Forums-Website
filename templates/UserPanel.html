@@ -41,23 +41,27 @@
     <!-- Register & Login Forms -->
     <div id="registerContainer"></div>
     <div id="loginContainer"></div>
+    <div id="messageBoxContainer"></div>
 
-    <div class="forumsContainer">
-        <h1 style="text-align: center;">User Panel</h1>
-        <h2 style="text-align: center;">In here you can remove/ban users from the site indefinitely</h2>
-        <hr>
-        <div>
-            <h2>Users:</h2>
-            {% for u in users %}
-            <form action="/delete/account/{{ u.Id }}" method="POST">
-                <button type="submit" class="transBtn"><i style="color: var(--remove);" class="fa fa-ban fa-lg"
-                        aria-hidden="true"></i></button>
-                <span>{{ u.Username }}</span>
-                <br>
-            </form>
-            {% endfor %}
+    <div id="mainContainer">
+        <div class="forumsContainer">
+            <h1 style="text-align: center;">User Panel</h1>
+            <h2 style="text-align: center;">In here you can remove/ban users from the site indefinitely</h2>
+            <hr>
+            <div>
+                <h2>Users:</h2>
+                {% for u in users %}
+                <form>
+                    <button title="Delete User" formaction="/delete/account/{{ u.Id }}" formmethod="POST"
+                        class="transBtn"><i style="color: var(--remove);" class="fa fa-ban fa-lg"
+                            aria-hidden="true"></i></button>
+                    <span>{{ u.Username }}</span>
+                    <br>
+                </form>
+                {% endfor %}
+            </div>
+            <hr>
         </div>
-        <hr>
     </div>
 </body>
 

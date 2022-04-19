@@ -26,25 +26,39 @@ function overlayOff(id) {
     document.getElementById(id).style.display = "none";
 }
 
-function validation() {
-    let psw = document.getElementById("registerPassword");
-    let confirmpsw = document.getElementById("confirmPassword");
-    let statusMsg = document.getElementById("statusMessage");
+// Returns true if password to confirmPassword matches, false if not
+function validatePassword() {
+    let psw = $('#registerPassword').val();
+    let confirmpsw = $('#confirmPassword').val();
+    let statusMsg = $('#statusMessage_PasswordMismatch');
 
-    if (psw.value !== "" && confirmpsw.value !== "" && psw.value !== confirmpsw.value) {
-        statusMsg.style.display = "block";
+    if (psw !== "" && confirmpsw !== "" && psw !== confirmpsw) {
+        statusMsg.show();
         return false;
     }
-    else {
-        statusMsg.style.display = "none";
+    statusMsg.hide();
+    return true;
+}
+
+// Returns true if username is valid, false if not
+function validateUsername() {
+    let usernameRestriction = /^[a-zA-Z0-9\_]+$/;
+    let username = $('#registerUsername').val();
+    let statusMsg = $('#statusMessage_InvalidUsername');
+
+    if (username === "" || usernameRestriction.test(username)) {
+        statusMsg.hide();
         return true;
     }
+    statusMsg.show();
+    return false;
 }
 
 function register(e) {
     e.preventDefault(); // Prevents the site from refreshing after form submission
 
-    if (!validation()) return;
+    if (!validatePassword()) return;
+    if (!validateUsername()) return;
 
     if (mutex) return;
     mutex = true;
@@ -60,7 +74,8 @@ function register(e) {
     };
 
     var request = new XMLHttpRequest();
-    request.open("POST", "/register/" + data.username + "/" + data.password, true);
+    request.open("POST", "/register", true);
+    request.setRequestHeader("Content-type", "application/json");
     request.onload = () => {
         switch (request.response) {
             case 'USER_CREATED':
@@ -94,7 +109,7 @@ function register(e) {
         overlayOff("overlayRegister"); // Close the form
         mutex = false;
     }
-    request.send();
+    request.send(JSON.stringify({ "Username": data.username, "Password": data.password }));
 }
 
 function login(e) {
@@ -114,7 +129,8 @@ function login(e) {
     };
 
     var request = new XMLHttpRequest();
-    request.open("POST", "/login/" + data.username + "/" + data.password, true);
+    request.open("POST", "/login", true);
+    request.setRequestHeader("Content-type", "application/json");
     request.onload = () => {
         switch (request.response) {
             case 'LOGIN_SUCCESSFUL':
@@ -147,13 +163,13 @@ function login(e) {
                 setTimeout(() => box.display = "none", notificationInterval);
                 break;
         }
-        document.getElementById("loginForm").reset(); // use a jquery instead here
+        document.getElementById("loginForm").reset();
         button.disabled = false;
         button.style.background = originalButtonColor; // Restores the original color
         overlayOff("overlayLogin"); // Close the form
         mutex = false;
     }
-    request.send();
+    request.send(JSON.stringify({ "Username": data.username, "Password": data.password }));
 }
 
 function createTopic(e) {
@@ -172,7 +188,8 @@ function createTopic(e) {
     };
 
     var request = new XMLHttpRequest();
-    request.open("POST", "/new/topic/" + data.topicName, true);
+    request.open("POST", "/new/topic", true);
+    request.setRequestHeader("Content-type", "application/json");
     request.onload = () => {
         switch (request.response) {
             case 'TOPIC_CREATED':
@@ -199,7 +216,7 @@ function createTopic(e) {
         overlayOff("overlayTopic"); // Close the form
         mutex = false;
     }
-    request.send();
+    request.send(JSON.stringify(data.topicName));
 }
 
 function loadRelatedClaims(claimId, topicId) {

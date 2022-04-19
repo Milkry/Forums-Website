@@ -29,21 +29,24 @@ def homepage():
 
 
 # Register
-@app.route('/register/<username>/<password>', methods=["POST"])
-def register(username, password):
+@app.route('/register', methods=["POST"])
+def register():
+    username = request.json["Username"]
+    password = request.json["Password"]
+
     if username and password and not isUserLoggedIn():
         db = sqlite3.connect(PATH)
         cursor = db.cursor()
         # Determine if the account already exists
         account = cursor.execute(
-            "select userID from user where userName=?", (username,))
+            "SELECT userID FROM user WHERE userName=?", (username,))
         for row in account:
             return 'USER_EXISTS'
         cursor.execute(
-            "insert into user (userName, passwordHash, isAdmin, creationTime, lastVisit) values (?, ?, 0, julianday('now'), 0)", (username, hashPassword(password),))
+            "INSERT INTO user (userName, passwordHash, isAdmin, creationTime, lastVisit) VALUES (?, ?, 0, julianday('now'), 0)", (username, hashPassword(password),))
         db.commit()
         newAccount = cursor.execute(
-            "select userID from user where userName=?", (username,))
+            "SELECT userID FROM user WHERE userName=?", (username,))
         for row in newAccount:
             session["userID"] = row[0]
             session["Username"] = username
@@ -53,8 +56,11 @@ def register(username, password):
 
 
 # Login
-@app.route('/login/<username>/<password>', methods=["POST"])
-def login(username, password):
+@app.route('/login', methods=["POST"])
+def login():
+    username = request.json["Username"]
+    password = request.json["Password"]
+
     if username and password and not isUserLoggedIn():
         db = sqlite3.connect(PATH)
         cursor = db.cursor()
@@ -233,7 +239,7 @@ def deleteReply(topicId, claimId, replyId):
     cursor.execute("PRAGMA foreign_keys = ON")
     db.commit()
     # Alternative way of deleting a reply
-    #deletedReplyText = "[REMOVED]"
+    # deletedReplyText = "[REMOVED]"
     # cursor.execute("update replyText set text=? where replyTextID=?",
     #               (deletedReplyText, replyId,))
     cursor.execute("delete from replyText where replyTextID=?", (replyId,))
@@ -301,8 +307,10 @@ def displayClaimsOfTopic(topicId):
 
 
 # Submit a topic
-@ app.route('/new/topic/<topicName>', methods=["POST"])
-def createTopic(topicName):
+@ app.route('/new/topic', methods=["POST"])
+def createTopic():
+    topicName = request.json
+
     if isUserLoggedIn():
         db = sqlite3.connect(PATH)
         cursor = db.cursor()

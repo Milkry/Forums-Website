@@ -8,17 +8,24 @@
                         aria-hidden="true"></i></button>
             </div>
             <hr class="hrForm">
-            <div id="statusMessage" class="passwordMismatch">
+            <!-- For password mismatch -->
+            <div id="statusMessage_PasswordMismatch" class="invalidMsgBox">
                 <i class="fa fa-times-circle" aria-hidden="true"></i>
                 <span><b style="color: var(--text2);">Password Mismatch</b></span>
             </div>
+            <!-- For invalid usernames -->
+            <div id="statusMessage_InvalidUsername" class="invalidMsgBox">
+                <i class="fa fa-times-circle" aria-hidden="true"></i>
+                <span><b style="color: var(--text2);">Invalid Username.<br>Can only contain [aA-zZ, 0-9,
+                        _]</b></span>
+            </div>
             <div id="inputFields">
-                <input type="text" placeholder="Username" name="registerUsername" id="registerUsername" minlength="3"
-                    maxlength="20" required>
-                <input type="password" onchange="validation()" placeholder="Password" name="registerPassword"
+                <input type="text" onchange="validateUsername()" placeholder="Username" name="registerUsername"
+                    id="registerUsername" minlength="3" maxlength="20" required>
+                <input type="password" onchange="validatePassword()" placeholder="Password" name="registerPassword"
                     id="registerPassword" minlength="4" required>
-                <input type="password" onchange="validation()" placeholder="Confirm Password" name="confirmPassword"
-                    id="confirmPassword" minlength="4" required>
+                <input type="password" onchange="validatePassword()" placeholder="Confirm Password"
+                    name="confirmPassword" id="confirmPassword" minlength="4" required>
                 <hr class="hrForm">
             </div>
             <button type="submit" class="formBtn" id="formBtn">Create an account</button>

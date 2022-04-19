@@ -177,7 +177,7 @@ input[type=password]:focus {
     padding: 20px;
 }
 
-.passwordMismatch {
+.invalidMsgBox {
     color: var(--icon2);
     background-color: red;
     text-align: center;

@@ -56,12 +56,15 @@
         {% endif %}
         {% if user.LoggedIn == True %}
         <button id="logoutBtn" style="display: inline-block;" onclick="location.href='/signout'"
-            class="navigationBtn"><i class="fa fa-sign-out fa-lg" aria-hidden="true"></i></button>
+            class="navigationBtn"><i class="fa fa-sign-out navigationBtnIcon"
+                aria-hidden="true"></i><b>Logout</b></button>
         {% else %}
         <button id="registerBtn" style="display: inline-block;" onclick="overlayOn('overlayRegister')"
-            class="navigationBtn"><b>Register</b></button>
+            class="navigationBtn"><i class="fa fa-user-plus navigationBtnIcon"
+                aria-hidden="true"></i><b>Register</b></button>
         <button id="loginBtn" style="display: inline-block;" onclick="overlayOn('overlayLogin')"
-            class="navigationBtn"><b>Login</b></button>
+            class="navigationBtn"><i class="fa fa-sign-in navigationBtnIcon"
+                aria-hidden="true"></i><b>Login</b></button>
         {% endif %}
     </div>
 
@@ -355,7 +358,6 @@
     .adminLabel {
         color: var(--text2);
         background-color: var(--admin);
-        box-shadow: 0 0 5px 3px var(--admin);
         border-radius: 10px;
         padding: 10px;
         margin-left: 20px;

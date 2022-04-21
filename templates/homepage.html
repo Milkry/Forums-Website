@@ -29,12 +29,15 @@
         {% endif %}
         {% if user.LoggedIn == True %}
         <button id="logoutBtn" style="display: inline-block;" onclick="location.href='/signout'"
-            class="navigationBtn"><i class="fa fa-sign-out fa-lg" aria-hidden="true"></i></button>
+            class="navigationBtn"><i class="fa fa-sign-out navigationBtnIcon"
+                aria-hidden="true"></i><b>Logout</b></button>
         {% else %}
         <button id="registerBtn" style="display: inline-block;" onclick="overlayOn('overlayRegister')"
-            class="navigationBtn"><b>Register</b></button>
+            class="navigationBtn"><i class="fa fa-user-plus navigationBtnIcon"
+                aria-hidden="true"></i><b>Register</b></button>
         <button id="loginBtn" style="display: inline-block;" onclick="overlayOn('overlayLogin')"
-            class="navigationBtn"><b>Login</b></button>
+            class="navigationBtn"><i class="fa fa-sign-in navigationBtnIcon"
+                aria-hidden="true"></i><b>Login</b></button>
         {% endif %}
     </div>
 
@@ -104,8 +107,8 @@
                     <label class="searchLabel"><i class="fa fa-search fa-lg" aria-hidden="true"></i></label>
                     <input oninput="search()" class="searchField" name="searchQuery" type="search"
                         placeholder="Search..." id="search" />
-                    <i onclick="overlayOn('overlayAdvancedSearch')" class="fa fa-info-circle fa-lg" aria-hidden="true"
-                        style="cursor: pointer;"></i>
+                    <i title="Advanced Search" onclick="overlayOn('overlayAdvancedSearch')"
+                        class="fa fa-info-circle fa-lg" aria-hidden="true" style="cursor: pointer;"></i>
                     <div style="position: absolute; z-index: 1; min-width: 25%;" id="results"></div>
                 </div>
                 {% if user.LoggedIn == True %}

@@ -65,7 +65,7 @@ def login():
         db = sqlite3.connect(PATH)
         cursor = db.cursor()
         account = cursor.execute(
-            "select userID, passwordHash from user where userName=?", (username,))
+            "SELECT userID, passwordHash FROM user WHERE userName=?", (username,))
         # If the for loop doesn't get executed, then the account doesn't exist
         for user in account:
             if user[1] == hashPassword(password):
@@ -101,7 +101,7 @@ def userPanel():
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
     users = cursor.execute(
-        "select userID, userName from user where isAdmin=0")
+        "SELECT userID, userName FROM user WHERE isAdmin=0")
     userList = []
     for row in users:
         class User:
@@ -123,7 +123,7 @@ def adminPanel():
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
     admins = cursor.execute(
-        "select userID, userName from user where isAdmin=1")
+        "SELECT userID, userName FROM user WHERE isAdmin=1")
     adminList = []
     for row in admins:
         class Admin:
@@ -140,12 +140,12 @@ def addAdmin():
     cursor = db.cursor()
     username = request.form["adminUsername"]
     found = False
-    account = cursor.execute("select userID from user where userName=?",
+    account = cursor.execute("SELECT userID FROM user WHERE userName=?",
                              (username,))
     for row in account:
         found = True
     if found:
-        cursor.execute("update user set isAdmin=1 where userName=?",
+        cursor.execute("UPDATE user SET isAdmin=1 WHERE userName=?",
                        (username,))
         db.commit()
         db.close()
@@ -163,7 +163,7 @@ def removeAdmin(adminId):
 
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
-    cursor.execute("update user set isAdmin=0 where userID=?", (adminId,))
+    cursor.execute("UPDATE user SET isAdmin=0 WHERE userID=?", (adminId,))
     db.commit()
     db.close()
     return redirect(url_for("adminPanel"))
@@ -179,7 +179,7 @@ def deleteTopic(topicId):
     cursor = db.cursor()
     cursor.execute("PRAGMA foreign_keys = ON")
     db.commit()
-    cursor.execute("delete from topic where topicID=?", (topicId,))
+    cursor.execute("DELETE FROM topic WHERE topicID=?", (topicId,))
     db.commit()
     db.close()
     return redirect(url_for("homepage"))
@@ -197,7 +197,7 @@ def deleteClaim(topicId, claimId):
     cursor = db.cursor()
     cursor.execute("PRAGMA foreign_keys = ON")
     db.commit()
-    cursor.execute("delete from claim where claimID=?", (claimId,))
+    cursor.execute("DELETE FROM claim WHERE claimID=?", (claimId,))
     db.commit()
     db.close()
     return redirect(url_for("displayClaimsOfTopic", topicId=topicId))
@@ -218,7 +218,7 @@ def moveClaim(claimId):
     cursor = db.cursor()
     cursor.execute("PRAGMA foreign_keys = ON")
     db.commit()
-    cursor.execute("update claim set topic=? where claimId=?",
+    cursor.execute("UPDATE claim SET topic=? WHERE claimId=?",
                    (newTopicId, claimId,))
     db.commit()
     db.close()
@@ -242,7 +242,7 @@ def deleteReply(topicId, claimId, replyId):
     # deletedReplyText = "[REMOVED]"
     # cursor.execute("update replyText set text=? where replyTextID=?",
     #               (deletedReplyText, replyId,))
-    cursor.execute("delete from replyText where replyTextID=?", (replyId,))
+    cursor.execute("DELETE FROM replyText WHERE replyTextID=?", (replyId,))
     db.commit()
     db.close()
     return redirect(url_for("displayClaim", topicId=topicId, claimId=claimId))
@@ -257,7 +257,7 @@ def moveReply(topicId, replyId):
     cursor = db.cursor()
     cursor.execute("PRAGMA foreign_keys = ON")
     db.commit()
-    cursor.execute("update replyToClaim set claim=? where reply=?",
+    cursor.execute("UPDATE replyToClaim SET claim=? WHERE reply=?",
                    (newClaimId, replyId,))
     db.commit()
     db.close()
@@ -277,7 +277,7 @@ def deleteAccount(userId):
     cursor = db.cursor()
     cursor.execute("PRAGMA foreign_keys = ON")
     db.commit()
-    cursor.execute("delete from user where userID=?", (userId,))
+    cursor.execute("DELETE FROM user WHERE userID=?", (userId,))
     db.commit()
     db.close()
     return redirect(url_for("userPanel"))
@@ -294,7 +294,7 @@ def displayClaimsOfTopic(topicId):
     cursor = db.cursor()
     claimList = []
     claims = cursor.execute(
-        "select claimID, postingUser, creationTime, updateTime, text from claim where topic=? order by updateTime desc", (topicId,))
+        "SELECT claimID, postingUser, creationTime, updateTime, text FROM claim WHERE topic=? ORDER BY updateTime DESC", (topicId,))
     for row in claims:
         class Claim:
             Id = row[0]
@@ -337,7 +337,7 @@ def displayClaim(topicId, claimId):
     cursor = db.cursor()
     # ADD UPDATE TIME WHEN A REPLY IS POSTED [CHANGE_NEEDED]
     claim = cursor.execute(
-        "select postingUser, text, creationTime from claim where claimID=?", (claimId,))
+        "SELECT postingUser, text, creationTime FROM claim WHERE claimID=?", (claimId,))
     for row in claim:
         userId = row[0]
         claimText = row[1]
@@ -374,7 +374,7 @@ def newClaimPage(topicId):
     cursor = db.cursor()
     claimList = []
     claims = cursor.execute(
-        "select claimID, postingUser, text from claim where topic=?", (topicId,))
+        "SELECT claimID, postingUser, text FROM claim WHERE topic=?", (topicId,))
     for row in claims:
         class Claim:
             Id = row[0]
@@ -388,7 +388,8 @@ def newClaimPage(topicId):
 # Submit a claim
 @ app.route('/<topicId>/<userId>/new/claim', methods=["POST"])
 def createClaim(topicId, userId):
-    # This might need some testing, if a userid is not returned this might break the server? [CHANGE_NEEDED]
+    if not isUserLoggedIn():
+        return BadRequest()
     if int(getUserIDFromSession()) != int(userId):
         return NotFoundMessage("UserId")
     if not isTopicIdValid(topicId):
@@ -411,7 +412,7 @@ def createClaim(topicId, userId):
                    (topicId, userId, currentTime, currentTime, text,))
     db.commit()
     claim = cursor.execute(
-        "select claimID from claim where creationTime=?", (currentTime,))  # Instead of searching the database using the claimText, use the creationTime [CHANGE_NEEDED]
+        "SELECT claimID FROM claim WHERE creationTime=?", (currentTime,))
     for row in claim:
         claimId = row[0]
     for claimRelationId in relatedClaim:  # Will create a claimToClaim relationship if thet list is not empty
@@ -419,7 +420,7 @@ def createClaim(topicId, userId):
                        (claimId, claimRelationId, relatedClaimType,))
         db.commit()
     cursor.execute(
-        "update topic set updateTime=julianday('now') where topicID=?", (topicId,))
+        "UPDATE topic SET updateTime=julianday('now') WHERE topicID=?", (topicId,))
     db.commit()
     db.close()
     return redirect(url_for("displayClaim", topicId=topicId, claimId=claimId))
@@ -445,13 +446,13 @@ def newClaimReply(topicId, claimId):
                    (getUserIDFromSession(), creationTime, replyText,))
     db.commit()
     Id = cursor.execute(
-        "select replyTextID from replyText where creationTime=?", (creationTime,))
+        "SELECT replyTextID FROM replyText WHERE creationTime=?", (creationTime,))
     for row in Id:
         replyId = row[0]
     cursor.execute("insert into replyToClaim (reply, claim, replyToClaimRelType) values (?, ?, ?)",
                    (replyId, claimId, replyType,))
     db.commit()
-    cursor.execute("update claim set updateTime=? where claimID=?",
+    cursor.execute("UPDATE claim SET updateTime=? WHERE claimID=?",
                    (creationTime, claimId,))
     db.commit()
     db.close()
@@ -481,14 +482,14 @@ def newReplyToReply(topicId, claimId, parentId):
                    (getUserIDFromSession(), creationTime, replyText))
     db.commit()
     Id = cursor.execute(
-        "select replyTextID from replyText where creationTime=?", (creationTime,))
+        "SELECT replyTextID FROM replyText WHERE creationTime=?", (creationTime,))
     for row in Id:
         replyId = row[0]
     cursor.execute("insert into replyToReply (reply, parent, replyToReplyRelType) values (?, ?, ?)",
                    (replyId, parentId, replyType,))
     db.commit()
     cursor.execute(
-        "update claim set updateTime=julianday('now') where claimID=?", (claimId,))
+        "UPDATE claim SET updateTime=julianday('now') WHERE claimID=?", (claimId,))
     db.commit()
     db.close()
     return redirect("/" + str(topicId) + "/" + str(claimId))
@@ -650,7 +651,7 @@ def getUsername(id):
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
     user = cursor.execute(
-        "select userName from user where userID=?", (id,))
+        "SELECT userName FROM user WHERE userID=?", (id,))
     username = "[user-deleted]"  # if no user is found
     for row in user:
         username = row[0]
@@ -662,7 +663,7 @@ def isAdmin(id):
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
     user = cursor.execute(
-        "select isAdmin from user where userID=?", (id,))
+        "SELECT isAdmin FROM user WHERE userID=?", (id,))
     for row in user:
         if row[0] == True:
             return True
@@ -676,7 +677,7 @@ def isUserIdValid(id):
     if not str(id).isnumeric():
         return False
     user = cursor.execute(
-        "select userName from user where userID=?", (id,))
+        "SELECT userName FROM user WHERE userID=?", (id,))
     for row in user:
         return True
     return False
@@ -687,7 +688,7 @@ def getUserJoinDate(id):
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
     date = cursor.execute(
-        "select creationTime from user where userID=?", (id,))
+        "SELECT creationTime FROM user WHERE userID=?", (id,))
     for row in date:
         return convertJulianTime(row[0], "DATE")
     return 0
@@ -698,7 +699,7 @@ def getUserTotalPosts(id):
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
     amount = cursor.execute(
-        "select count(*) from replyText where postingUser=?", (id,))
+        "SELECT count(*) FROM replyText WHERE postingUser=?", (id,))
     for row in amount:
         return row[0]
     return -1
@@ -709,7 +710,7 @@ def getTotalClaimsInTopic(topicId):
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
     claim = cursor.execute(
-        "select count(*) from claim where topic=?", (topicId,))
+        "SELECT count(*) FROM claim WHERE topic=?", (topicId,))
     for row in claim:
         return row[0]
 
@@ -719,7 +720,7 @@ def getLatestClaimInTopic(topicId):
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
     latestClaim = cursor.execute(
-        "select claimID, postingUser, updateTime from claim where topic=? order by updateTime desc limit 1", (topicId,))
+        "SELECT claimID, postingUser, updateTime FROM claim WHERE topic=? ORDER BY updateTime DESC LIMIT 1", (topicId,))
 
     class LatestClaim:
         HasClaim = False
@@ -737,7 +738,7 @@ def getAllTopics():
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
     topics = cursor.execute(
-        "select topicID, topicName, postingUser, creationTime from topic order by updateTime desc")
+        "SELECT topicID, topicName, postingUser, creationTime FROM topic ORDER BY updateTime DESC")
     topicList = []
     for row in topics:
         topicId = row[0]
@@ -762,7 +763,7 @@ def getAllClaimsInTopic(topicId):
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
     claims = cursor.execute(
-        "select claimID, postingUser, text from claim where topic=? order by updateTime desc", (topicId,))
+        "SELECT claimID, postingUser, text FROM claim WHERE topic=? ORDER BY updateTime DESC", (topicId,))
     claimList = []
     for row in claims:
         claimId = row[0]
@@ -785,12 +786,12 @@ def getParentDetails(replyId):
     cursor = db.cursor()
     # Gets parent id first
     parent = cursor.execute(
-        "select parent from replyToReply where reply=?", (replyId,))
+        "SELECT parent FROM replyToReply WHERE reply=?", (replyId,))
     for row in parent:
         parentId = row[0]
     # Get details of parent
     parentDetails = cursor.execute(
-        "select * from replyText where replyTextID=?", (parentId,))
+        "SELECT * FROM replyText WHERE replyTextID=?", (parentId,))
     for row in parentDetails:
         class Parent:
             Id = row[0]
@@ -812,7 +813,7 @@ def isReplyRelatedToClaim(replyTextId, claimId):
         # Get parent Id
         parentId = -1
         reply = cursor.execute(
-            "select parent from replyToReply where reply=?", (replyTextId,))
+            "SELECT parent FROM replyToReply WHERE reply=?", (replyTextId,))
         for row in reply:  # Executes once
             parentId = row[0]
         # If parentId is -1 then this replyTextId is not even in the replyToReply table
@@ -823,7 +824,7 @@ def isReplyRelatedToClaim(replyTextId, claimId):
 
         # Get the claimId of the reply
         claim = cursor.execute(
-            "select claim from replyToClaim where reply=?", (parentId,))
+            "SELECT claim FROM replyToClaim WHERE reply=?", (parentId,))
         # Executes once
         # If the for loop doesnt execute then this is not a claim reply, so theres more ancestors
         # Therefore we replace the replyTextId with the current parentId and we re-do the process
@@ -850,7 +851,7 @@ def getAllReplies(claimId):
     replyList = []  # This list will contain all the replies
 
     allClaimReplies = cursor.execute(
-        "select reply from replyToClaim where claim=?", (claimId,))
+        "SELECT reply FROM replyToClaim WHERE claim=?", (claimId,))
     temp = []
     for row in allClaimReplies:
         temp.append(row[0])
@@ -858,7 +859,7 @@ def getAllReplies(claimId):
     # Get all claim reply details
     for cId in temp:  # For every claim reply
         reply = cursor.execute(
-            "select postingUser, creationTime, text from replyText where replyTextID=?", (cId,))
+            "SELECT postingUser, creationTime, text FROM replyText WHERE replyTextID=?", (cId,))
         for row in reply:  # Executes once
             userId = row[0]
             createdAt = row[1]
@@ -877,7 +878,7 @@ def getAllReplies(claimId):
         replyList.append(ClaimReply)
 
     # Get all replies of replies related to the claim
-    allRepliesOfReplies = cursor.execute("select reply from replyToReply")
+    allRepliesOfReplies = cursor.execute("SELECT reply FROM replyToReply")
     temp = []
     for row in allRepliesOfReplies:  # For every reply of reply
         if isReplyRelatedToClaim(row[0], claimId):
@@ -885,7 +886,7 @@ def getAllReplies(claimId):
 
     for rId in temp:  # For every reply of reply
         data = cursor.execute(
-            "select postingUser, creationTime, text from replyText where replyTextID=?", (rId,))
+            "SELECT postingUser, creationTime, text FROM replyText WHERE replyTextID=?", (rId,))
         for row in data:  # Executes once
             userId = row[0]
             createdAt = row[1]
@@ -916,22 +917,22 @@ def getReplyType(replyId, typeOfReply):
         db = sqlite3.connect(PATH)
         cursor = db.cursor()
         type = cursor.execute(
-            "select replyToClaimRelType from replyToClaim where reply=?", (replyId,))
+            "SELECT replyToClaimRelType FROM replyToClaim WHERE reply=?", (replyId,))
         for row in type:
             typeId = row[0]
         claimType = cursor.execute(
-            "select claimReplyType from replyToClaimType where claimReplyTypeID=?", (typeId,))
+            "SELECT claimReplyType FROM replyToClaimType WHERE claimReplyTypeID=?", (typeId,))
         for row in claimType:
             return row[0]
     elif str(typeOfReply).upper() == "REPLY":
         db = sqlite3.connect(PATH)
         cursor = db.cursor()
         type = cursor.execute(
-            "select replyToReplyRelType from replyToReply where reply=?", (replyId,))
+            "SELECT replyToReplyRelType FROM replyToReply WHERE reply=?", (replyId,))
         for row in type:
             typeId = row[0]
         replyType = cursor.execute(
-            "select replyReplyType from replyToReplyType where replyReplyTypeID=?", (typeId,))
+            "SELECT replyReplyType FROM replyToReplyType WHERE replyReplyTypeID=?", (typeId,))
         for row in replyType:
             return row[0]
     else:
@@ -945,7 +946,7 @@ def isTopicIdValid(id):
     if not str(id).isnumeric():
         return False
     # Convert this into a EXISTS [CHANGE_NEEDED]
-    topic = cursor.execute("select * from topic where topicID=?", (id,))
+    topic = cursor.execute("SELECT * FROM topic WHERE topicID=?", (id,))
     for row in topic:
         return True
     return False
@@ -956,7 +957,7 @@ def getTopicName(id):
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
     topic = cursor.execute(
-        "select topicName from topic where topicID=?", (id,))
+        "SELECT topicName FROM topic WHERE topicID=?", (id,))
     for row in topic:
         return row[0]
     return "NULL"
@@ -967,7 +968,7 @@ def getClaimLastUpdateTime(claimId):
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
     date = cursor.execute(
-        "select updateTime from claim where claimID=?", (claimId,))
+        "SELECT updateTime FROM claim WHERE claimID=?", (claimId,))
     for row in date:
         return convertJulianTime(row[0], "FULL")
 
@@ -978,7 +979,7 @@ def isClaimIdValid(id):
     cursor = db.cursor()
     if not str(id).isnumeric():
         return False
-    claim = cursor.execute("select * from claim where claimID=?", (id,))
+    claim = cursor.execute("SELECT * FROM claim WHERE claimID=?", (id,))
     for row in claim:
         db.close()
         return True
@@ -991,7 +992,7 @@ def isTopicRelatedToClaim(topicId, claimId):
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
     claim = cursor.execute(
-        "select topic from claim where claimId=?", (claimId,))
+        "SELECT topic FROM claim WHERE claimId=?", (claimId,))
     for row in claim:
         if int(topicId) == row[0]:
             db.close()
@@ -1005,11 +1006,11 @@ def convertJulianTime(julianTime, format):
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
     if str(format).upper() == "FULL":
-        time = cursor.execute("select datetime(?)", (julianTime,))
+        time = cursor.execute("SELECT datetime(?)", (julianTime,))
     elif str(format).upper() == "DATE":
-        time = cursor.execute("select date(?)", (julianTime,))
+        time = cursor.execute("SELECT date(?)", (julianTime,))
     elif str(format).upper() == "TIME":
-        time = cursor.execute("select time(?)", (julianTime,))
+        time = cursor.execute("SELECT time(?)", (julianTime,))
     else:
         return "Invalid"
     for row in time:
@@ -1020,7 +1021,7 @@ def convertJulianTime(julianTime, format):
 def getCurrentJulianTime():
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
-    datetime = cursor.execute("select julianday('now')")
+    datetime = cursor.execute("SELECT julianday('now')")
     for row in datetime:
         return row[0]
 ####################################################################

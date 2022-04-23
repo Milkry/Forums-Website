@@ -28,7 +28,7 @@
         <span style="color: var(--text);">Hello, <b>{{ user.Username }}</b>!</span>
         {% endif %}
         {% if user.LoggedIn == True %}
-        <button id="logoutBtn" style="display: inline-block;" onclick="location.href='/signout'"
+        <button id="logoutBtn" style="display: inline-block; margin-left: 15px;" onclick="location.href='/signout'"
             class="navigationBtn"><i class="fa fa-sign-out navigationBtnIcon"
                 aria-hidden="true"></i><b>Logout</b></button>
         {% else %}
@@ -53,6 +53,7 @@
             <hr>
             <div>
                 <h2>Users:</h2>
+                {% if users|length > 0 %}
                 {% for u in users %}
                 <form>
                     <button title="Delete User" formaction="/delete/account/{{ u.Id }}" formmethod="POST"
@@ -62,6 +63,9 @@
                     <br>
                 </form>
                 {% endfor %}
+                {% else %}
+                <p>No users left to ban... :(</p>
+                {% endif %}
             </div>
             <hr>
         </div>

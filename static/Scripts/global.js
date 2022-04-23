@@ -19,11 +19,11 @@ function load(register, login, messageBoxes) {
 }
 
 function overlayOn(id) {
-    document.getElementById(id).style.display = "block";
+    $('#' + id).show();
 }
 
 function overlayOff(id) {
-    document.getElementById(id).style.display = "none";
+    $('#' + id).hide();
 }
 
 // Returns true if password to confirmPassword matches, false if not

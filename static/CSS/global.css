@@ -125,7 +125,7 @@ input[type=password]:focus {
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 2;
+    z-index: 10;
 }
 
 .forumsContainer {
@@ -143,9 +143,14 @@ input[type=password]:focus {
     background-color: var(--form);
     vertical-align: middle;
     border-radius: 10px;
-    width: auto;
+    width: 50%;
     margin: 5px;
     padding: 10px;
+    transition: width 300ms ease-in-out;
+}
+
+.searchField:focus {
+    width: 70%;
 }
 
 .searchLabel {
@@ -156,6 +161,7 @@ input[type=password]:focus {
 
 .resultsContainer {
     cursor: pointer;
+    transition: background-color 250ms ease-in-out;
 }
 
 .resultsContainer:active,
@@ -210,6 +216,8 @@ input[type=password]:focus {
     cursor: pointer;
     padding: 15px;
     opacity: 0.85;
+    border-radius: 10px;
+    transition: background-color 200ms ease-in-out, opacity 200ms ease-in-out, box-shadow 200ms ease-in-out, border-radius 200ms ease-in-out;
 }
 
 .exitOverlayButton:active,
@@ -247,6 +255,7 @@ input[type=password]:focus {
     position: fixed;
     top: 0;
     width: 100%;
+    z-index: 5;
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
 }
@@ -254,18 +263,18 @@ input[type=password]:focus {
 .navigationBtn {
     color: var(--text);
     background-color: transparent;
+    border-radius: 15px;
     border: none;
     cursor: pointer;
     padding: 20px;
     font-size: 16px;
-    opacity: 0.85;
+    transition: background-color 300ms ease-in-out, border-radius 300ms ease-in-out;
 }
 
 .navigationBtn:active,
 .navigationBtn:hover {
     background-color: var(--highlight);
     border-radius: 20px;
-    opacity: 1;
 }
 
 .navigationBtnIcon {
@@ -288,12 +297,13 @@ input[type=password]:focus {
     margin: 2px;
     padding: 10px;
     opacity: 0.85;
+    transition: opacity 200ms ease-in-out, box-shadow 200ms ease-in-out;
 }
 
 .btn:active,
 .btn:hover {
     opacity: 1;
-    box-shadow: 0 0 5px 1px gray;
+    box-shadow: 0 0 5px 2px gray;
 }
 
 .transBtn {
@@ -306,6 +316,7 @@ input[type=password]:focus {
     padding: 10px 15px 10px 15px;
     border-radius: 10px;
     opacity: 0.85;
+    transition: opacity 200ms ease-in-out, box-shadow 200ms ease-in-out;
 }
 
 .transBtn:active,
@@ -321,12 +332,13 @@ input[type=password]:focus {
     padding: 20px;
     opacity: 0.9;
     cursor: pointer;
+    transition: opacity 200ms ease-in-out, box-shadow 200ms ease-in-out;
 }
 
 .formBtn:active,
 .formBtn:hover {
     opacity: 1;
-    box-shadow: 0 0 5px 1px black;
+    box-shadow: 0 0 5px 2px black;
 }
 
 .formBtnCancel {
@@ -335,6 +347,7 @@ input[type=password]:focus {
     width: 100%;
     padding: 20px;
     cursor: pointer;
+    transition: box-shadow 200ms ease-in-out;
 }
 
 .formBtnCancel:active,

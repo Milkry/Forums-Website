@@ -5,10 +5,8 @@ import hashlib
 app = Flask(__name__)
 app.secret_key = b'jGqNj?O}&6n<]&}mG+nS)([Smk6{P>k5>F^d:qJ2&z:qZQf}blH0=bm/my"&(]-'
 
-# Make a json config file to store the database name
+# Database path
 PATH = "./ScriptsDB/forums.db"
-
-# IMPLEMENT LAST VISIT FOR USER [CHANGE_NEEDED]
 
 
 @app.errorhandler(404)
@@ -19,6 +17,11 @@ def page_not_found(e):
 @app.errorhandler(403)
 def page_is_forbidden(e):
     return Forbidden()
+
+
+@app.errorhandler(400)
+def page_is_bad_request(e):
+    return BadRequest()
 
 
 # Home
@@ -43,7 +46,7 @@ def register():
         for row in account:
             return 'USER_EXISTS'
         cursor.execute(
-            "INSERT INTO user (userName, passwordHash, isAdmin, creationTime, lastVisit) VALUES (?, ?, 0, julianday('now'), 0)", (username, hashPassword(password),))
+            "INSERT INTO user (userName, passwordHash, isAdmin, creationTime, lastVisit) VALUES (?, ?, 0, julianday('now'), julianday('now'))", (username, hashPassword(password),))
         db.commit()
         newAccount = cursor.execute(
             "SELECT userID FROM user WHERE userName=?", (username,))
@@ -232,7 +235,6 @@ def deleteReply(topicId, claimId, replyId):
         return NotFoundMessage("Topic")
     if not isClaimIdValid(claimId):
         return NotFoundMessage("Claim")
-    # Validate replyId [CHANGE_NEEDED]
 
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
@@ -251,7 +253,6 @@ def deleteReply(topicId, claimId, replyId):
 # Move a reply as admin
 @app.route('/move/topic/<topicId>/reply/<replyId>', methods=["POST"])
 def moveReply(topicId, replyId):
-    # validate replyId [CHANGE_NEEDED]
     newClaimId = request.form.get("newClaimId")
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
@@ -335,7 +336,6 @@ def displayClaim(topicId, claimId):
 
     db = sqlite3.connect(PATH)
     cursor = db.cursor()
-    # ADD UPDATE TIME WHEN A REPLY IS POSTED [CHANGE_NEEDED]
     claim = cursor.execute(
         "SELECT postingUser, text, creationTime FROM claim WHERE claimID=?", (claimId,))
     for row in claim:
@@ -466,9 +466,6 @@ def newReplyToReply(topicId, claimId, parentId):
         return NotFoundMessage("Topic")
     if not isClaimIdValid(claimId):
         return NotFoundMessage("Claim")
-    # Validate replyToID [CHANGE_NEEDED]
-    # if not isReplyToIdValid(parentId):
-    #    return NotFoundMessage("")
     if not isUserLoggedIn():
         return NotFoundMessage("Account")
 
@@ -567,14 +564,14 @@ def searchFor():
                 "SELECT topicID, topicName FROM topic WHERE topicName LIKE ?", ("%" + search + "%",))
             for row in result:
                 results.append(
-                    {"type": "TOPIC", "topicId": row[0], "topicName": row[1]})
+                    {"type": "TOPIC", "topicId": row[0], "topicName": cleansify(row[1])})
         if claimSearch:
             # Search claims
             result = cursor.execute(
                 "SELECT claimID, topic, text FROM claim WHERE text LIKE ?", ("%" + search + "%",))
             for row in result:
                 results.append(
-                    {"type": "CLAIM", "claimId": row[0], "topicId": row[1], "text": str(row[2])[:75] + str("...")})
+                    {"type": "CLAIM", "claimId": row[0], "topicId": row[1], "text": str(cleansify(row[2]))[:75] + str("...")})
     return jsonify({"results": removeDuplicates(results)})
 
 
@@ -615,6 +612,7 @@ def getUserStatus():
         username = getUsername(id)
         loggedIn = True
         admin = isAdmin(getUserIDFromSession())
+        updateUserLastVisit(id)
     else:
         id = 0
         username = "NULL"
@@ -627,6 +625,16 @@ def getUserStatus():
         LoggedIn = loggedIn
         Admin = admin
     return Status
+
+
+# Updates a user's lastVisit status
+def updateUserLastVisit(id):
+    db = sqlite3.connect(PATH)
+    cursor = db.cursor()
+    cursor.execute(
+        "UPDATE user SET lastVisit=julianday('now') WHERE userID=?", (id,))
+    db.commit()
+    db.close()
 
 
 # Returns a hashed password
@@ -945,7 +953,6 @@ def isTopicIdValid(id):
     cursor = db.cursor()
     if not str(id).isnumeric():
         return False
-    # Convert this into a EXISTS [CHANGE_NEEDED]
     topic = cursor.execute("SELECT * FROM topic WHERE topicID=?", (id,))
     for row in topic:
         return True
@@ -1024,4 +1031,13 @@ def getCurrentJulianTime():
     datetime = cursor.execute("SELECT julianday('now')")
     for row in datetime:
         return row[0]
+
+
+# Returns a string with cleansified html characters
+def cleansify(data):
+    replaceChars = ["<", ">"]
+    replaceWith = ["&lt;", "&gt;"]
+    for i in range(len(replaceChars)):
+        data = str(data).replace(replaceChars[i], replaceWith[i])
+    return data
 ####################################################################

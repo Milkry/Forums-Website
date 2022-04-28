@@ -15,9 +15,9 @@
 <body
     onload="load(`{{ url_for('static', filename='Templates/RegisterForm.html') }}`, `{{ url_for('static', filename='Templates/LoginForm.html') }}`, `{{ url_for('static', filename='Templates/MessageBoxes.html') }}`)">
     <!-- Navigation Bar -->
-    <div class="navigationContainer">
+    <nav class="navigationContainer">
         <button id="homeBtn" style="float: left;" onclick="location.href='/'" class="navigationBtn"><i
-                class="fa fa-home fa-lg" aria-hidden="true"></i></button>
+                class="fa fa-home fa-lg" aria-label="Home Button"></i></button>
         {% if user.Admin == True %}
         <button id="adminBtn" style="float: left;" onclick="location.href='/adminpanel'" class="navigationBtn"><b>Admin
                 Panel</b></button>
@@ -39,7 +39,7 @@
             class="navigationBtn"><i class="fa fa-sign-in navigationBtnIcon"
                 aria-hidden="true"></i><b>Login</b></button>
         {% endif %}
-    </div>
+    </nav>
 
     <div id="mainContainer">
         <!-- Register & Login Forms -->
@@ -47,27 +47,19 @@
         <div id="loginContainer"></div>
         <div id="messageBoxContainer"></div>
 
-        <div style="display: none;" id="ConfirmationPrompt" class="centerDiv confirmationPrompt">
-            <h2>Are you sure?</h2>
-            <div style="text-align: center;">
-                <button class="transBtn">No</button>
-                <button class="transBtn">Yes</button>
-            </div>
-        </div>
-
         <!-- Advanced Search Info -->
         <div id="overlayAdvancedSearch" class="overlay">
             <div class="advancedSearch centerDiv">
                 <div class="flex-container-space-between">
                     <h1 style="display: inline-block;">Advanced Search</h1>
                     <button onclick="overlayOff('overlayAdvancedSearch')" class="exitOverlayButton"><i
-                            class="fa fa-times fa-2x" aria-hidden="true"></i></button>
+                            class="fa fa-times fa-2x" aria-label="Close advanced search help window"></i></button>
                 </div>
                 <div>
                     <hr>
                     <p>You can apply filters in your search:</p>
-                    <p><i>@topic [Search for...]</i></p>
-                    <p><i>@claim [Search for...]</i></p>
+                    <p tabindex="0"><i>@topic [Search for...]</i></p>
+                    <p tabindex="0"><i>@claim [Search for...]</i></p>
                     <br>
                     <p>Example: <i>"@claim computers"</i></p>
                     <p>The above example will find matching claims about <b>computers</b></p>
@@ -82,11 +74,12 @@
                     <div class="flex-container-space-between">
                         <h1 style="display: inline-block;">Create Topic</h1>
                         <button type="reset" class="exitOverlayButton"><i class="fa fa-times fa-2x"
-                                aria-hidden="true"></i></button>
+                                aria-label="Close create topic window"></i></button>
                     </div>
                     <div id="inputFields">
                         <hr class="hrForm">
-                        <input type="text" placeholder="Topic Name" name="topicName" id="topicName" required>
+                        <input type="text" placeholder="Topic Name" name="topicName" id="topicName"
+                            aria-label="Enter a topic name" required>
                         <hr class="hrForm">
                     </div>
                     <button type="submit" class="formBtn" id="formBtn">Create</button>
@@ -96,8 +89,9 @@
 
         <!-- Logo -->
         <div class="logoContainer">
-            <h1 style="vertical-align: middle;" class="logoTitle"><img style="vertical-align: middle;" width="300px"
-                    height="300px" src="{{ url_for('static', filename='Resources/Images/logo.png') }}" />FORUMS</h1>
+            <h1 style="vertical-align: middle;" class="logoTitle"><img alt="Website Logo"
+                    style="vertical-align: middle;" width="300px" height="300px"
+                    src="{{ url_for('static', filename='Resources/Images/logo.png') }}" />FORUMS</h1>
         </div>
 
         <!-- Topics Section -->
@@ -107,8 +101,10 @@
                     <label class="searchLabel"><i class="fa fa-search fa-lg" aria-hidden="true"></i></label>
                     <input oninput="search()" class="searchField" name="searchQuery" type="search"
                         placeholder="Search..." id="search" />
-                    <i title="Advanced Search" onclick="overlayOn('overlayAdvancedSearch')"
-                        class="fa fa-info-circle fa-lg" aria-hidden="true" style="cursor: pointer;"></i>
+                    <button title="Advanced Search" onclick="overlayOn('overlayAdvancedSearch')"
+                        style="cursor: pointer; border: none;" class="fa fa-info-circle fa-lg"
+                        aria-label="Open advanced search help window">
+                    </button>
                     <div style="position: absolute; z-index: 1; min-width: 25%;" id="results"></div>
                 </div>
                 <div>
@@ -127,26 +123,27 @@
             <div>
                 <hr>
                 <div class="grid-container-topics">
-                    <div title="View Topic" onclick="location.href='/{{ topic.Id }}'" style="margin-left: 20px;"
+                    <button title="View Topic" onclick="location.href='/{{ topic.Id }}'" style="margin-left: 20px;"
                         class="topicContainer">
-                        <span class="topic"><i class="fa fa-book fa-4x topicIcon" aria-hidden="true"></i>{{ topic.Name
+                        <span class="topic"><i class="fa fa-book fa-4x topicIcon" aria-label="Topic"></i>{{ topic.Name
                             }}</span>
-                    </div>
+                    </button>
                     <div style="font-size: 15px;" class="topic grid-content-center">
                         {% if topic.Claim.HasClaim == True %}
-                        <div title="View Claim" onclick="location.href='/{{ topic.Id }}/{{ topic.Claim.Id }}'"
+                        <button title="View Claim" tabindex="0"
+                            onclick="location.href='/{{ topic.Id }}/{{ topic.Claim.Id }}'"
                             style="display: grid; grid-template-columns: 20% 80%; justify-items: center; align-items: center; text-align: center;"
                             class="topicContainer">
                             <i style="margin-right: 10px; color: var(--primary);" class="fa fa-comment fa-3x"
-                                aria-hidden="true"></i>
-                            <div>
+                                aria-label="Latest claim for this topic"></i>
+                            <div style="font-size: 15px;">
                                 <span>Claim By: <b>{{ topic.Claim.Username }}</b></span>
                                 <br>
                                 <span>Last Reply: <b>{{ topic.Claim.UpdatedAt }}</b></span>
                             </div>
-                        </div>
+                        </button>
                         {% else %}
-                        <span>No Claims</span>
+                        <span aria-label="No claims for this topic yet">No Claims</span>
                         {% endif %}
                     </div>
                     <div class="grid-content-center">
@@ -162,8 +159,8 @@
                     {% if user.Admin == True %}
                     <div class="grid-content-center">
                         <form action="/delete/topic/{{ topic.Id }}" method="POST">
-                            <button title="Delete Topic" type="submit" class="transBtn"><i style="color: var(--remove);"
-                                    class="fa fa-trash fa-lg" aria-hidden="true"></i></button>
+                            <button title="Delete Topic" type="submit" class="transBtn"><i aria-label="Delete Topic"
+                                    style="color: var(--remove);" class="fa fa-trash fa-lg"></i></button>
                         </form>
                     </div>
                     {% endif %}
@@ -185,11 +182,14 @@
     }
 
     .topicContainer {
+        background-color: transparent;
+        border: none;
         cursor: pointer;
+        text-align: left;
+        border-radius: 15px;
         padding-top: 10px;
         padding-bottom: 10px;
         margin: 5px 0 5px 0;
-        border-radius: 15px;
         transition: background-color 250ms ease-in-out, box-shadow 250ms ease-in-out, border-radius 250ms ease-in-out;
     }
 

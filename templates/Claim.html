@@ -9,7 +9,7 @@
         href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <script src="{{ url_for('static', filename='Scripts/global.js') }}"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <title>{% block title %}Claim: {{ claim.Username }}{% endblock %}</title>
+    <title>{% block title %}Claim by {{ claim.Username }}{% endblock %}</title>
 </head>
 
 <script>
@@ -42,9 +42,9 @@
 <body
     onload="load(`{{ url_for('static', filename='Templates/RegisterForm.html') }}`, `{{ url_for('static', filename='Templates/LoginForm.html') }}`, `{{ url_for('static', filename='Templates/MessageBoxes.html') }}`)">
     <!-- Navigation Bar -->
-    <div class="navigationContainer">
+    <nav class="navigationContainer">
         <button id="homeBtn" style="float: left;" onclick="location.href='/'" class="navigationBtn"><i
-                class="fa fa-home fa-lg" aria-hidden="true"></i></button>
+                class="fa fa-home fa-lg" aria-label="Home Button"></i></button>
         {% if user.Admin == True %}
         <button id="adminBtn" style="float: left;" onclick="location.href='/adminpanel'" class="navigationBtn"><b>Admin
                 Panel</b></button>
@@ -66,7 +66,7 @@
             class="navigationBtn"><i class="fa fa-sign-in navigationBtnIcon"
                 aria-hidden="true"></i><b>Login</b></button>
         {% endif %}
-    </div>
+    </nav>
 
     <div id="mainContainer">
         <!-- Register & Login Forms -->
@@ -82,10 +82,11 @@
                         <i class="fa fa-home fa-2x" aria-hidden="true"></i>
                     </button>
                     <i class="fa fa-long-arrow-right" aria-hidden="true"></i>
-                    <span style="cursor: pointer;" onclick="location.href='/{{ topic.TopicId }}'">{{ topic.TopicName
-                        }}</span>
+                    <button id="forumHierarchyTopic" aria-label="The topic is"
+                        onclick="location.href='/{{ topic.TopicId }}'">{{ topic.TopicName
+                        }}</button>
                     <i class="fa fa-long-arrow-right" aria-hidden="true"></i>
-                    <span>{{ claim.Username }}</span>
+                    <span aria-label="Claim by">{{ claim.Username }}</span>
                 </div>
                 <div style="background-color: var(primary); border-radius: 15px; padding: 10px;">
                     {% if user.LoggedIn == True %}
@@ -127,11 +128,10 @@
             </div>
 
             <!-- Original Claim -->
-            <!-- Make a mark to show easily who the OP is [CHANGE_NEEDED] -->
             <div id="{{ claim.ClaimId }}" class="grid-container">
                 <div class="userInfo">
-                    <p><b>{{ claim.Username }}</b></p>
-                    <img class="userProfile"
+                    <p><b aria-label="The claim was made by the user">{{ claim.Username }}</b></p>
+                    <img class="userProfile" aria-describedby="Profile Picture" alt="Profile Picture"
                         src="{{ url_for('static', filename='Resources/Images/default_user.png') }}">
                     {% if claim.IsAdmin == True %}
                     <br><br>
@@ -147,7 +147,7 @@
                 </div>
             </div>
 
-            <!-- Make a statistics bar [CHANGE_NEEDED] -->
+            <!-- Statistics -->
             <div style="text-align: center;">
                 <h2 class="statisticsTitle">Claim Statistics</h2>
                 <div style="text-align: center;">
@@ -162,8 +162,8 @@
             {% for reply in replies %}
             <div id="reply_{{ reply.Id }}" style="margin-left: 30px; margin-top: 30px;" class="grid-container">
                 <div class="userInfo">
-                    <p><b>{{ reply.Username }}</b></p>
-                    <img class="userProfile"
+                    <p><b aria-label="A reply from">{{ reply.Username }}</b></p>
+                    <img class="userProfile" aria-describedby="Profile Picture" alt="Profile Picture"
                         src="{{ url_for('static', filename='Resources/Images/default_user.png') }}">
                     {% if reply.IsAdmin == True %}
                     <br><br>
@@ -178,12 +178,13 @@
                     <div style="margin-bottom: 10px;" class="flex-container-space-between">
                         <div>
                             {% if reply.isReplyToReply == True %}
-                            <span class="replyingTo">Replying To: <a
+                            <span class="replyingTo">Replying To:<button id="replyingToUsername"
                                     onclick="moveTo('reply_{{ reply.ReplyingToId }}')">{{
-                                    reply.ReplyingToUsername }}</a></span>
+                                    reply.ReplyingToUsername }}</button></span>
                             {% else %}
-                            <span class="replyingTo">Replying To: <a onclick="moveTo('{{ claim.ClaimId }}')">{{
-                                    claim.Username }}</a></span>
+                            <span class="replyingTo">Replying To:<button id="replyingToUsername"
+                                    onclick="moveTo('{{ claim.ClaimId }}')">{{
+                                    claim.Username }}</button></span>
                             {% endif %}
                             {% if reply.ReplyType == "Clarification" %}
                             <span style="background-color: var(--replyTypeClarification);" class="replyTypeLabel">{{

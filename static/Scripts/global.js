@@ -103,7 +103,7 @@ function register(e) {
                 setTimeout(() => box.display = "none", notificationInterval);
                 break;
         }
-        document.getElementById("registerForm").reset(); // use a jquery instead here
+        document.getElementById("registerForm").reset();
         button.disabled = false;
         button.style.background = originalButtonColor; // Restores the original color
         overlayOff("overlayRegister"); // Close the form
@@ -193,8 +193,6 @@ function createTopic(e) {
     request.onload = () => {
         switch (request.response) {
             case 'TOPIC_CREATED':
-                //box = document.getElementById("loginSuccessfulBox").style;
-                //box.display = "block";
                 location.href = '/';
                 break;
 
@@ -210,7 +208,7 @@ function createTopic(e) {
                 setTimeout(() => box.display = "none", notificationInterval);
                 break;
         }
-        document.getElementById("createTopic").reset(); // use a jquery instead here
+        document.getElementById("createTopic").reset();
         button.disabled = false;
         button.style.background = originalButtonColor; // Restores the original color
         overlayOff("overlayTopic"); // Close the form
@@ -239,7 +237,7 @@ function loadRelatedClaims(claimId, topicId) {
         if (claims.length == 0) {
             let claim =
                 `
-                <div style="margin 10px">
+                <div style="margin: 10px;">
                     <p style="word-break: break-all; padding: 20px; font-size: 20px; color: var(--text);">No relations for this claim</p>
                 </div>
                 `;
@@ -249,9 +247,9 @@ function loadRelatedClaims(claimId, topicId) {
         for (const relation of claims) {
             let claim =
                 `
-                <div onclick="window.open('/${topicId}/${relation.relatedToId}', '_blank')" class="claimContainer" style="margin 10px">
+                <button onclick="window.open('/${topicId}/${relation.relatedToId}', '_blank')" class="claimContainer" style="margin: 10px; width: 90%;">
                     <p style="word-break: break-all; padding: 20px; font-size: 20px; color: var(--text);"><i class="fa fa-comment fa-lg claimIcon" aria-hidden="true"></i>${relation.relatedToText}</p>
-                </div>
+                </button>
                 `;
             if (relation.relationType == "Opposed") {
                 $('#overlayRelatedClaims-opposed').append(claim);
@@ -309,6 +307,7 @@ function search() {
                     <div title="View Topic" onclick="location.href='/${result.topicId}'" style="padding: 5px;"
                         class="resultsContainer">
                         <span><i class="fa fa-book fa-lg resultsIcon" aria-hidden="true"></i>${result.topicName}</span>
+                        <button class="AsearchResult"><i class="fa fa-external-link fa-lg"></i></button>
                     </div>
                     `;
                     $('#results').append(element);
@@ -319,6 +318,7 @@ function search() {
                     <div title="View Claim" onclick="location.href='/${result.topicId}/${result.claimId}'" style="padding: 5px;"
                         class="resultsContainer">
                         <span><i class="fa fa-comment fa-lg resultsIcon" aria-hidden="true"></i>${result.text}</span>
+                        <button class="AsearchResult"><i class="fa fa-external-link fa-lg"></i></button>
                     </div>
                     `;
                     $('#results').append(element);

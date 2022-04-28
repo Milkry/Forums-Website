@@ -4,7 +4,7 @@
 
  :root {
      --primary: #8B21DE;
-     --secondary: #5db31c;
+     --secondary: #4f9917;
      --third: #8290a2;
      --background: rgb(219, 219, 219);
      --background2: whitesmoke;
@@ -17,8 +17,8 @@
      --border: rgb(180, 180, 180);
      --link: dodgerblue;
      --containerShadow: gray;
-     --admin:rgb(202, 0, 0);
-     --remove: red;
+     --admin: var(--primary);
+     --remove: rgb(150, 0, 0);
      --replyTypeClarification: gold;
      --replyTypeSupportingArgument: #89AC76;
      --replyTypeCounterargument: #4D5645;
@@ -60,11 +60,28 @@
     text-align: center;
 }
 
+#replyingToUsername {
+    color: var(--link);
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: bold;
+}
+
 #forumHierarchy {
     color: var(--text);
     vertical-align: middle;
     margin: 20px;
     font-size: 30px;
+}
+
+#forumHierarchyTopic {
+    background-color: transparent;
+    border: none;
+    color: var(--text);
+    font-size: 30px;
+    cursor: pointer;
 }
 
 #mainContainer {
@@ -183,9 +200,15 @@ input[type=password]:focus {
     padding: 20px;
 }
 
+.AsearchResult {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+}
+
 .invalidMsgBox {
     color: var(--icon2);
-    background-color: red;
+    background-color: var(--remove);
     text-align: center;
     display: none;
     border-radius: 10px;
@@ -238,13 +261,6 @@ input[type=password]:focus {
     padding: 30px;
     width: 25%;
     float: right;
-}
-
-.confirmationPrompt {
-    background-color: var(--background2);
-    box-shadow: 10px 10px 10px 10px var(--containerShadow);
-    padding: 10px 30px 30px 30px;
-    border-radius: 15px;
 }
 
 .navigationContainer {
